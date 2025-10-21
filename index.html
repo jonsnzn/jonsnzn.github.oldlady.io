@@ -4,29 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jogo da Velha Supremo by João Neves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ESTILOS GERAIS E DE TEMA --- */
+        /* --- ESTILOS GERAIS E TEMA --- */
         :root {
-            --bg: #f4f7fa;
+            --bg: #f0f2f5;
             --panel-bg: #ffffff;
-            --text: #0f172a;
-            --text-light: #475569;
+            --text: #1a202c;
+            --text-light: #718096;
             --border: #e2e8f0;
-            --primary: #4f46e5;
-            --primary-light: #6366f1;
-            --secondary-bg: #eef2ff;
-            --secondary-text: #3730a3;
-            --danger: #dc2626;
-            --info: #3b82f6;
-            --success: #16a34a;
-            --danger-bg: #fee2e2;
-            --info-bg: #dbeafe;
-            --success-bg: #dcfce7;
+            --primary: #5a67d8;
+            --primary-light: #7f9cf5;
+            --secondary-bg: #ebf4ff;
+            --secondary-text: #4c51bf;
+            --danger: #e53e3e;
+            --info: #4299e1;
+            --success: #48bb78;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --shadow-lg: rgba(0, 0, 0, 0.1);
         }
+
+        .dark-theme {
+            --bg: #1a202c;
+            --panel-bg: #2d3748;
+            --text: #f7fafc;
+            --text-light: #a0aec0;
+            --border: #4a5568;
+            --primary: #7f9cf5;
+            --primary-light: #a3bffa;
+            --secondary-bg: #2c3548;
+            --secondary-text: #a3bffa;
+            --danger: #fc8181;
+            --info: #63b3ed;
+            --success: #68d391;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --shadow-lg: rgba(0, 0, 0, 0.2);
+        }
+
         html {
             box-sizing: border-box;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            height: 100%;
         }
         *, *:before, *:after { 
             box-sizing: inherit; 
@@ -34,54 +54,71 @@
             padding: 0;
         }
         body {
-            height: 100vh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
             background-color: var(--bg);
             color: var(--text);
+            display: grid;
+            grid-template-rows: 1fr auto;
+            align-items: center;
+            justify-items: center;
+            padding: 1rem;
+            overflow-y: auto;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        main { 
+            text-align: center; 
+            width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 1rem;
         }
-        main { text-align: center; }
-        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem; }
-        p.subtitle { font-size: 1.1rem; color: var(--text-light); max-width: 600px; margin-bottom: 1.5rem; }
+        h1 { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 0.75rem; }
+        p.subtitle { 
+            font-size: 1.1rem; 
+            color: var(--text-light); 
+            max-width: 500px; 
+            margin-bottom: 2rem; 
+            line-height: 1.6;
+        }
 
-        /* --- ANIMAÇÕES --- */
+        /* --- ANIMAÇÕES E TRANSIÇÕES --- */
         @keyframes draw-x { 0% { stroke-dashoffset: 29.5; } 100% { stroke-dashoffset: 0; } }
         @keyframes draw-o { 0% { stroke-dashoffset: 56.5; } 100% { stroke-dashoffset: 0; } }
         @keyframes winner-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes fade-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+        @keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
         
         /* --- ESTILOS DO JOGO --- */
         #game-container {
             width: 95vw;
-            max-width: 480px;
+            max-width: 420px;
             background-color: var(--panel-bg);
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px var(--shadow-lg), 0 10px 10px -5px var(--shadow);
             border: 1px solid var(--border);
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            animation: fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            gap: 1rem;
+            animation: fade-in 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            position: relative;
         }
         .game-header {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
             width: 100%;
         }
-        .game-header h3 { font-size: 1.2rem; font-weight: 600; }
+        .game-header h3 { font-size: 1.1rem; font-weight: 600; color: var(--text-light); }
         .header-controls { display: flex; gap: 10px; }
+        .header-controls.left { justify-self: start; }
+        .header-controls.right { justify-self: end; }
         
         /* --- BOTÕES --- */
         .btn {
             border: none;
             border-radius: 8px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
             display: inline-flex;
@@ -95,26 +132,27 @@
             background: var(--secondary-bg);
             color: var(--secondary-text);
             border-radius: 50%;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
         }
         .btn-icon:hover { 
             background-color: var(--primary);
             color: white;
-            transform: scale(1.1);
+            transform: scale(1.1) translateY(-1px);
         }
-        .btn-icon svg { width: 18px; height: 18px; }
+        .btn-icon svg { width: 20px; height: 20px; }
 
         .btn-primary {
             padding: 12px 20px;
             font-size: 1.1rem;
-            background-color: var(--primary);
+            background-image: linear-gradient(45deg, var(--primary), var(--primary-light));
             color: white;
             width: 100%;
+            box-shadow: 0 4px 12px -2px color-mix(in srgb, var(--primary) 40%, transparent);
         }
         .btn-primary:hover { 
-            background-color: var(--primary-light); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            background-image: linear-gradient(45deg, var(--primary-light), var(--primary)); 
+            box-shadow: 0 6px 16px -2px color-mix(in srgb, var(--primary) 50%, transparent);
         }
 
         #game-scoreboard {
@@ -122,55 +160,48 @@
             grid-template-columns: 1fr auto 1fr;
             justify-content: space-around;
             background-color: var(--bg);
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px;
+            border-radius: 12px;
             align-items: center;
         }
         .score-item { text-align: center; }
-        .score-item .label { font-size: 0.85rem; font-weight: 500; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;}
-        .score-item .score { font-size: 1.5rem; font-weight: 700; }
+        .score-item .label { font-size: 0.8rem; font-weight: 600; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;}
+        .score-item .score { font-size: 1.6rem; font-weight: 800; }
         #player-score { color: var(--info); }
         #bot-score { color: var(--danger); }
         
         #ultimate-board {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
+            gap: 5px;
             background-color: var(--border);
-            border: 3px solid var(--border);
-            border-radius: 8px;
-            padding: 6px;
+            border-radius: 12px;
+            padding: 5px;
             position: relative;
         }
         #start-game-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: color-mix(in srgb, var(--panel-bg) 80%, transparent);
+            backdrop-filter: blur(2px);
             z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 8px; /* Match parent */
+            border-radius: 12px;
             cursor: pointer;
         }
-        #start-game-trigger-btn {
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        #start-game-trigger-btn:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-        }
+        #start-game-trigger-btn { padding: 15px 30px; font-size: 1.5rem; }
         
         #ultimate-board.game-over .micro-cell { cursor: not-allowed; }
         #active-board-highlighter {
             position: absolute;
-            background-color: color-mix(in srgb, var(--primary) 20%, transparent);
+            background-color: color-mix(in srgb, var(--primary) 15%, transparent);
             border: 2px solid var(--primary);
-            border-radius: 4px;
+            border-radius: 8px;
             z-index: 1;
             pointer-events: none;
-            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             opacity: 0;
         }
         .macro-cell {
@@ -179,7 +210,7 @@
             gap: 3px;
             background-color: var(--border);
             position: relative;
-            border-radius: 4px;
+            border-radius: 8px;
             overflow: hidden;
         }
         .micro-cell {
@@ -196,34 +227,30 @@
         .micro-cell.player-o .icon-o path { stroke: var(--danger); animation: draw-o 0.4s forwards; }
         
         .macro-cell .icon { width: 70%; height: 70%; }
-        .icon-x path, .icon-o path { stroke-width: 2.5; stroke-dasharray: 57; stroke-dashoffset: 57; }
+        .icon-x path, .icon-o path { stroke-width: 3; stroke-dasharray: 57; stroke-dashoffset: 57; }
         
         .macro-cell[data-winner="T"] { background-color: var(--secondary-bg); }
         .macro-winner-cell {
             display: flex !important;
             justify-content: center;
             align-items: center;
-            font-size: clamp(2rem, 12vw, 6rem);
-            font-weight: 900;
+            font-size: clamp(2rem, 12vw, 5rem);
+            font-weight: 800;
             line-height: 1;
             animation: winner-pop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             cursor: not-allowed;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; z-index: 2;
         }
-        .macro-winner-cell.winner-x { color: var(--info); background-color: color-mix(in srgb, var(--info-bg) 80%, white) !important; }
-        .macro-winner-cell.winner-o { color: var(--danger); background-color: color-mix(in srgb, var(--danger-bg) 80%, white) !important; }
+        .macro-winner-cell.winner-x { color: var(--info); background-color: color-mix(in srgb, var(--info) 15%, transparent) !important; backdrop-filter: blur(2px); }
+        .macro-winner-cell.winner-o { color: var(--danger); background-color: color-mix(in srgb, var(--danger) 15%, transparent) !important; backdrop-filter: blur(2px); }
 
         #game-status {
             text-align: center;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-light);
-            min-height: 22px;
+            min-height: 24px;
             padding: 5px;
         }
         
@@ -233,11 +260,12 @@
             position: fixed;
             z-index: 1001;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
-            animation: fade-in 0.3s ease-out;
+            animation: fade-in 0.3s ease-out forwards;
+            opacity: 0;
         }
         .modal-content {
             background-color: var(--panel-bg);
@@ -245,15 +273,19 @@
             border: 1px solid var(--border);
             width: 90%;
             max-width: 500px;
-            border-radius: 16px;
+            border-radius: 20px;
             text-align: center;
             position: relative;
+            box-shadow: 0 20px 25px -5px var(--shadow-lg), 0 10px 10px -5px var(--shadow);
+            animation: fade-in 0.4s 0.1s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            opacity: 0;
         }
         .modal-content h2 { margin-bottom: 0.75rem; font-size: 1.8rem; }
-        .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-light); }
-        .modal-content ul { margin-bottom: 1.5rem; padding-left: 20px; text-align: left; }
-        .modal-content li { margin-bottom: 10px; }
-        .modal-content strong { color: var(--primary); }
+        .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-light); line-height: 1.7; }
+        .modal-content ul { margin-bottom: 1.5rem; padding-left: 0; text-align: left; list-style: none; }
+        .modal-content li { margin-bottom: 1rem; line-height: 1.7; padding-left: 35px; position: relative; }
+        .modal-content li span { position: absolute; left: 0; top: 2px; font-size: 1.2rem; }
+        .modal-content strong { color: var(--primary); font-weight: 600; }
         .modal-content input {
             width: 100%;
             padding: 12px;
@@ -262,12 +294,11 @@
             border: 1px solid var(--border);
             margin-bottom: 1rem;
             text-align: center;
+            background-color: var(--bg);
+            color: var(--text);
         }
         
-        .close-btn {
-            position: absolute;
-            top: 10px; right: 10px;
-        }
+        .close-btn { position: absolute; top: 15px; right: 15px; }
         #player-history {
             font-size: 0.9rem;
             color: var(--text-light);
@@ -277,32 +308,20 @@
         .mode-selection-buttons { display: flex; flex-direction: column; gap: 1rem; }
 
         /* --- TELA DE VITÓRIA/DERROTA --- */
-        #end-game-modal-content {
-            padding: 40px;
-        }
-        #end-game-modal-content h2 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-        #end-game-modal-content p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-        }
-        #end-game-modal-content img {
-            max-width: 150px;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-        }
+        #end-game-modal-content { padding: 40px; }
+        #end-game-modal-content h2 { font-size: 3rem; margin-bottom: 1rem; }
+        #end-game-modal-content p { font-size: 1.2rem; margin-bottom: 2rem; }
+        #end-game-modal-content img { max-width: 150px; border-radius: 10px; margin-bottom: 1.5rem; }
         #end-game-modal-content .winner-x { color: var(--info); }
         #end-game-modal-content .winner-o { color: var(--danger); }
         #end-game-modal-content .winner-t { color: var(--text-light); }
         
         /* --- FOOTER/WATERMARK --- */
         footer {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            grid-row: 2;
+            width: 100%;
+            text-align: center;
+            padding: 0.5rem 1rem;
             font-size: 0.8rem;
             color: var(--text-light);
             opacity: 0.7;
@@ -325,26 +344,33 @@
         <p class="subtitle">Desafie a Jon IA ou um amigo e ajude a treinar uma inteligência artificial.</p>
 
         <div id="game-container">
+            <div id="start-game-overlay">
+                <button id="start-game-trigger-btn" class="btn btn-primary">Jogar</button>
+            </div>
             <div class="game-header">
                 <div class="header-controls left">
+                    <button id="theme-toggle-btn" class="btn btn-icon" title="Mudar Tema">
+                        <svg id="icon-theme-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                        <svg id="icon-theme-moon" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    </button>
                     <button id="sound-toggle-btn" class="btn btn-icon" title="Ativar/Desativar Som">
-                        <svg id="icon-sound-on" xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                        <svg id="icon-sound-off" style="display: none;" xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                        <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <svg id="icon-sound-off" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
                     </button>
                 </div>
                 <h3>Jogo da Velha</h3>
                 <div class="header-controls right">
                     <button id="objective-btn" class="btn btn-icon" title="Sobre o Projeto">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-4.286 1.35-4.286-2.55-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.791-.3 5.5-1.366 5.5-6.04 0-1.33-.48-2.42-1.28-3.28.13-.3.54-1.54-.12-3.23 0 0-1.02-.33-3.33 1.23A11.5 11.5 0 0 0 10 4.5c-1.02 0-2.03.13-3 .4-2.3-1.56-3.32-1.23-3.32-1.23-.66 1.69-.25 2.93-.12 3.23-.8.86-1.28 1.95-1.28 3.28 0 4.68 2.71 5.74 5.5 6.04-.6.55-.5 1.5-.5 2V21"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 14v4"/><path d="M8.28 11.97A4.02 4.02 0 0 1 12 6a4 4 0 0 1 4 4c0 2.25-2 4-2 4h-4s-2-1.75-2-4c0-1.1.4-2.12 1.17-2.83"/></svg>
                     </button>
-                    <button id="game-help-btn" class="btn btn-icon" title="Como Jogar">
+                    <button id="game-help-btn" class="btn btn-icon" title="Instruções de Como Jogar">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
             <div id="game-scoreboard">
                 <div class="score-item">
-                    <div class="label" id="player-name-label">Jogador 1 (X)</div>
+                    <div class="label" id="player-name-label">Jogador 1</div>
                     <div class="score" id="player-score">0</div>
                 </div>
                 <div class="score-item">
@@ -352,91 +378,50 @@
                     <div class="score" id="tie-score">0</div>
                 </div>
                 <div class="score-item">
-                    <div class="label" id="opponent-name-label">Jon IA (O)</div>
+                    <div class="label" id="opponent-name-label">Jon IA</div>
                     <div class="score" id="bot-score">0</div>
                 </div>
             </div>
-            <div id="ultimate-board">
-                 <div id="start-game-overlay">
-                    <button id="start-game-trigger-btn" class="btn btn-primary">Jogar</button>
-                </div>
-            </div>
+            <div id="ultimate-board"></div>
             <p id="game-status">Clique em Jogar para começar</p>
-            <button id="restart-game-btn" class="btn btn-primary">Voltar ao Menu</button>
         </div>
     </main>
     
-    <!-- Modal de Nome do Jogador 1 -->
-    <div id="player-name-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2>Bem-vindo!</h2>
-            <p>Digite seu nome para começar:</p>
-            <input type="text" id="player-name-input" placeholder="Seu Nome (Jogador 1)" maxlength="12">
-            <button id="confirm-name-btn" class="btn btn-primary">Confirmar</button>
-            <div id="player-history"></div>
-        </div>
-    </div>
-
-    <!-- Modal de Nome do Jogador 2 -->
-    <div id="player2-name-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2>Jogador 2</h2>
-            <p>Digite o nome do segundo jogador:</p>
-            <input type="text" id="player2-name-input" placeholder="Nome do Jogador 2" maxlength="12">
-            <button id="confirm-p2-name-btn" class="btn btn-primary">Iniciar Jogo</button>
-        </div>
-    </div>
-
-    <!-- Modal de Seleção de Modo -->
-    <div id="mode-selection-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2 id="welcome-player-name"></h2>
-            <p>Escolha um modo de jogo:</p>
-            <div class="mode-selection-buttons">
-                <button id="vs-ai-btn" class="btn btn-primary">Jogador vs. Jon IA</button>
-                <button id="vs-player-btn" class="btn btn-primary">Jogador 1 vs. Jogador 2</button>
-            </div>
-        </div>
-    </div>
+    <!-- Modais de Jogo -->
+    <div id="player-name-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <h2>Bem-vindo!</h2><p>Digite seu nome para começar:</p><input type="text" id="player-name-input" placeholder="Seu Nome" maxlength="12"><button id="confirm-name-btn" class="btn btn-primary">Confirmar</button><div id="player-history"></div>
+    </div></div>
+    <div id="player2-name-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <h2>Jogador 2</h2><p>Digite o nome do segundo jogador:</p><input type="text" id="player2-name-input" placeholder="Nome do Jogador 2" maxlength="12"><button id="confirm-p2-name-btn" class="btn btn-primary">Iniciar Jogo</button>
+    </div></div>
+    <div id="mode-selection-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <h2 id="welcome-player-name"></h2><p>Escolha um modo de jogo:</p><div class="mode-selection-buttons"><button id="vs-ai-btn" class="btn btn-primary">Jogador vs. Jon IA</button><button id="vs-player-btn" class="btn btn-primary">Jogador 1 vs. Jogador 2</button></div>
+    </div></div>
     
     <!-- Modais Informativos -->
-    <div id="game-instructions-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <button class="btn btn-icon close-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <h2>Como Jogar</h2>
-            <ul>
-                <li><strong>Objetivo:</strong> Vencer 3 mini-tabuleiros em linha, coluna ou diagonal.</li>
-                <li><strong>A Regra de Ouro:</strong> A casa que você joga em um mini-tabuleiro <strong>determina</strong> para qual mini-tabuleiro o oponente deve jogar.</li>
-                <li><strong>Exemplo:</strong> Se você joga no <strong>canto superior direito</strong>, seu oponente é forçado a jogar no tabuleiro do <strong>canto superior direito</strong>.</li>
-                <li><strong>Tabuleiro Livre:</strong> Se sua jogada enviar o oponente para um tabuleiro já ganho ou empatado, ele poderá jogar em <strong>qualquer outro tabuleiro livre</strong>.</li>
-            </ul>
-        </div>
-    </div>
-    <div id="project-objective-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <button class="btn btn-icon close-btn">
-                <svg xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            </button>
-            <h2>Sobre Este Projeto</h2>
-            <p style="text-align: left; margin: 1rem 0;">
-                Este jogo foi desenvolvido por <strong>João Neves</strong> com dois objetivos principais:
-            </p>
-            <ul style="text-align: left;">
-                <li>Treinar e aprimorar a inteligência artificial "Jon IA" para implementação em projetos futuros.</li>
-                <li>Testar e aprofundar meus conhecimentos em programação e desenvolvimento de jogos.</li>
-            </ul>
-            <p>Obrigado por jogar e ajudar no desenvolvimento!</p>
-        </div>
-    </div>
+    <div id="game-instructions-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <button class="btn btn-icon close-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        <h2>Como Jogar</h2>
+        <ul>
+            <li><span>🎯</span><strong>Objetivo:</strong> Vencer 3 mini-tabuleiros em linha, coluna ou diagonal.</li>
+            <li><span>📜</span><strong>A Regra de Ouro:</strong> A casa que você joga em um mini-tabuleiro <strong>determina</strong> para qual o oponente deve jogar.</li>
+            <li><span>➡️</span><strong>Exemplo:</strong> Se você joga no <strong>canto superior direito</strong>, seu oponente é forçado a jogar no tabuleiro do <strong>canto superior direito</strong>.</li>
+            <li><span>🔄</span><strong>Tabuleiro Livre:</strong> Se sua jogada enviar o oponente para um tabuleiro já ganho ou empatado, ele poderá jogar em <strong>qualquer outro tabuleiro livre</strong>.</li>
+        </ul>
+    </div></div>
+    <div id="project-objective-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <button class="btn btn-icon close-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        <h2>Sobre o Projeto</h2>
+        <p style="text-align: left; margin-bottom: 1.5rem;">E aí! Eu sou o <strong>João</strong>, e criei este jogo por dois grandes motivos:</p>
+        <ul style="text-align: left; list-style-type: none; padding-left: 0;">
+            <li><span>🧠</span><strong>Treinar a "Jon IA":</strong> Quero deixar essa inteligência artificial cada vez mais esperta para usar em outros projetos que tenho em mente.</li>
+            <li><span>👨‍💻</span><strong>Aprender na prática:</strong> Desenvolver este jogo foi a minha forma de testar e aprofundar o que sei sobre programação.</li>
+        </ul>
+        <p style="margin-top: 2rem;">Valeu por jogar e fazer parte disso!</p>
+    </div></div>
 
     <!-- Modal de Fim de Jogo -->
-    <div id="end-game-modal" class="modal-overlay" style="display: none;">
-        <div id="end-game-modal-content" class="modal-content">
-            <!-- Conteúdo dinâmico será injetado aqui -->
-        </div>
-    </div>
+    <div id="end-game-modal" class="modal-overlay" style="display: none;"><div id="end-game-modal-content" class="modal-content"></div></div>
 
     <footer>&copy; 2025 João Neves. Todos os direitos reservados.</footer>
 
@@ -445,18 +430,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ELEMENTOS DO DOM ---
     const gameStatus = document.getElementById('game-status');
-    const restartButton = document.getElementById('restart-game-btn');
-    const playerScoreEl = document.getElementById('player-score');
-    const botScoreEl = document.getElementById('bot-score');
-    const tieScoreEl = document.getElementById('tie-score');
     const ultimateBoard = document.getElementById('ultimate-board');
     const soundBtn = document.getElementById('sound-toggle-btn');
     const iconSoundOn = document.getElementById('icon-sound-on');
     const iconSoundOff = document.getElementById('icon-sound-off');
-    const startGameOverlay = document.getElementById('start-game-overlay');
-    const startGameTriggerBtn = document.getElementById('start-game-trigger-btn');
+    const themeBtn = document.getElementById('theme-toggle-btn');
+    const iconThemeSun = document.getElementById('icon-theme-sun');
+    const iconThemeMoon = document.getElementById('icon-theme-moon');
     
-    // Modais e Botões de Controle
     const modals = {
         instructions: document.getElementById('game-instructions-modal'),
         objective: document.getElementById('project-objective-modal'),
@@ -473,60 +454,54 @@ document.addEventListener('DOMContentLoaded', () => {
     const welcomePlayerName = document.getElementById('welcome-player-name');
     const vsAiBtn = document.getElementById('vs-ai-btn');
     const vsPlayerBtn = document.getElementById('vs-player-btn');
-    const endGameContent = document.getElementById('end-game-modal-content');
     const p2NameInput = document.getElementById('player2-name-input');
     const confirmP2NameBtn = document.getElementById('confirm-p2-name-btn');
 
     const playerNameLabel = document.getElementById('player-name-label');
     const opponentNameLabel = document.getElementById('opponent-name-label');
+    const playerScoreEl = document.getElementById('player-score');
+    const botScoreEl = document.getElementById('bot-score');
+    const tieScoreEl = document.getElementById('tie-score');
 
     // --- CÓDIGO DA IA (WEB WORKER) ---
-    const workerCode = `
-        const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
-        const ORDER=[4,0,2,6,8,1,3,5,7];
-        function opp(p){return p==='X'?'O':'X';}
-        function cloneState(s){return{boards:s.boards.map(b=>b.slice()),meta:s.meta.slice(),target:s.target,turn:s.turn};}
-        function winnerOfBoard(b){for(const[a,c,d]of LINES){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return b[a];}return b.includes(null)?null:'draw';}
-        function recomputeMeta(s){for(let i=0;i<9;i++){if(s.meta[i]==null)s.meta[i]=winnerOfBoard(s.boards[i]);}}
-        function winnerOfMeta(m){for(const[a,b,c]of LINES){if(m[a]&&m[a]!=='draw'&&m[a]===m[b]&&m[a]===m[c])return m[a];}return m.some(x=>x==null)?null:'draw';}
-        function emptyCount(s){let n=0;for(let sb=0;sb<9;sb++){if(s.meta[sb]!=null)continue;const b=s.boards[sb];for(let i=0;i<9;i++)if(b[i]==null)n++;}return n;}
-        function hasImmediateWin(b,p){for(const L of LINES){const[a,c,d]=L;const C=[b[a],b[c],b[d]];const cP=C.filter(x=>x===p).length;const cE=C.filter(x=>x==null).length;if(cP===2&&cE===1)return true;}return false;}
-        function legalMoves(s){recomputeMeta(s);const m=[];const t=[];if(s.target===-1||s.meta[s.target]!=null){for(let sb=0;sb<9;sb++){if(s.meta[sb]==null)t.push(sb);}}else{t.push(s.target);}for(const sb of t){const b=s.boards[sb];for(const i of ORDER){if(b[i]==null)m.push({sb,idx:i});}}return m;}
-        function applyMove(s,mv){s.boards[mv.sb][mv.idx]=s.turn;s.meta[mv.sb]=winnerOfBoard(s.boards[mv.sb]);s.target=mv.idx;if(s.meta[s.target]!=null)s.target=-1;s.turn=opp(s.turn);return s;}
-        function scoreLine3(c,me,th){let m=0,t=0,e=0;for(const C of c){if(C===me)m++;else if(C===th)t++;else e++;}if(m===3)return 100;if(t===3)return-100;if(m===2&&e===1)return 7;if(t===2&&e===1)return-9;if(m===1&&e===2)return 2;if(t===1&&e===2)return-2;return 0;}
-        function evalSub(b,me,th){const w=winnerOfBoard(b);if(w===me)return 140;if(w===th)return-140;if(w==='draw')return 0;let s=0;for(const L of LINES){s+=scoreLine3([b[L[0]],b[L[1]],b[L[2]]],me,th);}const P=[3,2,3,2,5,2,3,2,3];for(let i=0;i<9;i++){if(b[i]===me)s+=P[i];else if(b[i]===th)s-=P[i];}return s;}
-        function evalMeta(m,me,th){const w=winnerOfMeta(m);if(w===me)return 9000;if(w===th)return-9000;if(w==='draw')return 0;const c=m.map(v=>v===me?me:(v===th?th:null));let s=0;for(const L of LINES){const a=[c[L[0]],c[L[1]],c[L[2]]];let M=0,t=0,e=0;for(const C of a){if(C===me)M++;else if(C===th)t++;else e++;}if(M===2&&e===1)s+=120;if(t===2&&e===1)s-=140;if(M===1&&e===2)s+=20;if(t===1&&e===2)s-=20;}return s;}
-        function evaluate(s,me){const th=opp(me);recomputeMeta(s);let S=evalMeta(s.meta,me,th);for(let sb=0;sb<9;sb++){if(s.meta[sb]==null){const w=(s.target===-1||s.target===sb)?1.7:1.0;S+=w*evalSub(s.boards[sb],me,th);}}if(s.target!==-1&&s.meta[s.target]==null){const b=s.boards[s.target];if(hasImmediateWin(b,th))S-=25;}return S;}
-        function orderMoves(s,me,mvs){const th=opp(me);const o=[];for(const mv of mvs){const b=s.boards[mv.sb];let sc=0;const tmp=b[mv.idx];b[mv.idx]=me;if(winnerOfBoard(b)===me)sc+=2000;b[mv.ax]=th;if(winnerOfBoard(b)===th)sc+=600;b[mv.idx]=tmp;sc+=(mv.idx===4?9:([0,2,6,8].includes(mv.idx)?5:2));const snd=mv.idx;if(s.meta[snd]===me)sc+=40;if(s.meta[snd]===th)sc-=25;if(s.target===mv.sb)sc+=8;o.push({mv,sc});}o.sort((a,b)=>b.sc-a.sc);return o.map(x=>x.mv);}
-        function minimax(s,d,mD,a,b,me,iM,dl){recomputeMeta(s);const w=winnerOfMeta(s.meta);if(w===me)return 100000-d;if(w===opp(me))return-100000+d;if(w==='draw')return 0;if(d>=mD||(dl&&Date.now()>=dl)){return evaluate(s,me);}const mvs0=legalMoves(s);const mvs=orderMoves(s,me,mvs0);if(!mvs.length)return evaluate(s,me);if(iM){let B=-Infinity;for(const mv of mvs){const s2=cloneState(s);let ext=0;if(s2.target===-1||s2.target===mv.sb){const B=s2.boards[mv.sb];if(hasImmediateWin(B,me)||hasImmediateWin(B,opp(me)))ext=1;}applyMove(s2,mv);const v=minimax(s2,d+1,mD+ext,a,b,me,false,dl);if(v>B)B=v;if(v>a)a=v;if(b<=a)break;}return B;}else{let B=Infinity;for(const mv of mvs){const s2=cloneState(s);let ext=0;if(s2.target===-1||s2.target===mv.sb){const B=s2.boards[mv.sb];if(hasImmediateWin(B,me)||hasImmediateWin(B,opp(me)))ext=1;}applyMove(s2,mv);const v=minimax(s2,d+1,mD+ext,a,b,me,true,dl);if(v<B)B=v;if(v<b)b=v;if(b<=a)break;}return B;}}
-        function bestMove(s,ai,opts={}){const bD=opts.maxDepth??8;const tM=opts.timeMs??1500;const dl=Date.now()+tM;const mvs=legalMoves(s);if(!mvs.length)return null;let b=null;let bV=-Infinity;const em=emptyCount(s);let mD=bD;if(em<=22)mD+=1;if(em<=14)mD+=2;const ord=orderMoves(s,ai,mvs);for(let d=4;d<=mD;d++){if(Date.now()>=dl)break;let lB=b,lBV=bV;for(const mv of ord){if(Date.now()>=dl)break;const s2=cloneState(s);applyMove(s2,mv);const v=minimax(s2,1,d,-Infinity,Infinity,ai,false,dl);if(v>lBV){lBV=v;lB=mv;}}if(lB){b=lB;bV=lBV;}}return b??ord[0];}
-        self.onmessage=function(e){const{state,botPlayer}=e.data;const move=bestMove(state,botPlayer);self.postMessage(move);self.close();};
-    `;
+    const workerCode = `const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const ORDER=[4,0,2,6,8,1,3,5,7];function opp(p){return p==='X'?'O':'X'}
+function cloneState(s){return{boards:s.boards.map(b=>b.slice()),meta:s.meta.slice(),target:s.target,turn:s.turn}}
+function winnerOfBoard(b){for(const[a,c,d]of LINES){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return b[a]}return b.includes(null)?null:'draw'}
+function recomputeMeta(s){for(let i=0;i<9;i++){if(s.meta[i]==null)s.meta[i]=winnerOfBoard(s.boards[i])}}
+function legalMoves(s){recomputeMeta(s);const m=[],t=[];if(s.target===-1||s.meta[s.target]!=null){for(let sb=0;sb<9;sb++){if(s.meta[sb]==null)t.push(sb)}}else{t.push(s.target)}for(const sb of t){const b=s.boards[sb];for(const i of ORDER){if(b[i]==null)m.push({sb,idx:i})}}return m}
+function applyMove(s,mv){s.boards[mv.sb][mv.idx]=s.turn;s.meta[mv.sb]=winnerOfBoard(s.boards[mv.sb]);s.target=mv.idx;if(s.meta[s.target]!=null)s.target=-1;s.turn=opp(s.turn);return s}
+function evaluate(s,me){recomputeMeta(s);const th=opp(me);let S=0;const m=s.meta.map(v=>v===me?me:v===th?th:null);for(const L of LINES){const a=[m[L[0]],m[L[1]],m[L[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3)return 9e3;if(t===3)return-9e3;if(M===2&&t===0)S+=120;if(t===2&&M===0)S-=140;if(M===1&&t===0)S+=20;if(t===1&&M===0)S-=20}for(let i=0;i<9;i++){if(s.meta[i]===null){const w=s.target===-1||s.target===i?1.7:1;let s_b=0;const b=s.boards[i];for(const L of LINES){const a=[b[L[0]],b[L[1]],b[L[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3){s_b+=140}else if(t===3){s_b-=140}else{if(M===2&&t===0)s_b+=7;if(t===2&&M===0)s_b-=9;if(M===1&&t===0)s_b+=2;if(t===1&&M===0)s_b-=2}}S+=w*s_b}}return S}
+function bestMove(s,p){const m=legalMoves(s);if(m.length===0)return null;if(m.length===1)return m[0];let bm=null,bs=-1/0;for(const mv of m){const s2=cloneState(s);applyMove(s2,mv);const v=-minimax(s2,4,-1/0,1/0);if(v>bs){bs=v;bm=mv}}return bm}
+function minimax(s,d,a,b){const w=winnerOfBoard(s.meta);if(w!==null)return(w===s.turn?1e5:-1e5)-d;if(d===0)return evaluate(s,s.turn);const m=legalMoves(s);if(m.length===0)return 0;for(const mv of m){const s2=cloneState(s);applyMove(s2,mv);const v=-minimax(s2,d-1,-b,-a);if(v>=b)return b;if(v>a)a=v}return a}
+self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPlayer);self.postMessage(move);self.close()};`;
 
-    // --- CONTROLE DE SOM ---
+    // --- CONTROLE DE SOM E TEMA ---
     let audioCtx;
     let isMuted = localStorage.getItem('isMuted') === 'true';
 
     function playSound(type) {
-        if (isMuted || !audioCtx) return;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
-
-        switch (type) {
-            case 'place': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); break;
-            case 'miniwin': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); break;
-            case 'win': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.2); break;
-            case 'lose': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(220, audioCtx.currentTime + 0.2); break;
-            case 'tie': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime); break;
+        if (isMuted) return;
+        try {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01);
+            switch (type) {
+                case 'place': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); break;
+                case 'miniwin': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); break;
+                case 'win': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.2); break;
+                case 'lose': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(220, audioCtx.currentTime + 0.2); break;
+                case 'tie': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime); break;
+            }
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+            oscillator.stop(audioCtx.currentTime + 0.2);
+        } catch (e) {
+            console.error("Audio playback error:", e);
         }
-
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
-        oscillator.stop(audioCtx.currentTime + 0.2);
     }
     
     function toggleMute() {
@@ -541,22 +516,34 @@ document.addEventListener('DOMContentLoaded', () => {
         iconSoundOff.style.display = isMuted ? 'block' : 'none';
     }
 
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-theme');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        updateThemeButton(isDark);
+    }
+
+    function updateThemeButton(isDark) {
+        iconThemeSun.style.display = isDark ? 'block' : 'none';
+        iconThemeMoon.style.display = isDark ? 'none' : 'block';
+    }
+
     // --- VARIÁVEIS DE ESTADO DO JOGO ---
-    const PLAYER_X = 'X', PLAYER_O = 'O';
-    const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
+    let humanPlayer, aiPlayer;
     let microBoards, macroBoard, currentPlayer, activeMacroBoard, isGameOver, activeBoardHighlighter, aiWorker;
-    let gameMode;
-    let player1Name = 'Jogador 1', player2Name = 'Jogador 2';
+    let gameMode, player1Name = 'Jogador 1', player2Name = 'Jogador 2';
     let allPlayerScores = JSON.parse(localStorage.getItem('allPlayerScores')) || {};
+    let starterForNextGame = 'human';
 
     // --- FUNÇÕES PRINCIPAIS DO JOGO ---
+    const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
+    const checkForMicroWin = (idx, p) => winningConditions.some(c => c.every(i => microBoards[idx][i] === p));
+    const checkForMacroWin = (p) => winningConditions.some(c => c.every(i => macroBoard[i] === p));
 
     function createBoard() {
         ultimateBoard.innerHTML = '';
         activeBoardHighlighter = document.createElement('div');
         activeBoardHighlighter.id = 'active-board-highlighter';
         ultimateBoard.appendChild(activeBoardHighlighter);
-        
         for (let i = 0; i < 9; i++) {
             const macroCell = document.createElement('div');
             macroCell.classList.add('macro-cell');
@@ -574,10 +561,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function startGame() {
         if (aiWorker) aiWorker.terminate();
-        
         microBoards = Array(9).fill(null).map(() => Array(9).fill(null));
         macroBoard = Array(9).fill(null);
-        currentPlayer = PLAYER_X;
+        currentPlayer = 'X';
         activeMacroBoard = -1;
         isGameOver = false;
         ultimateBoard.classList.remove('game-over');
@@ -593,19 +579,17 @@ document.addEventListener('DOMContentLoaded', () => {
         updateActiveBoards();
         updateGameStatus();
 
-        if (gameMode === 'ai' && currentPlayer === PLAYER_O) {
+        if (gameMode === 'ai' && currentPlayer === aiPlayer) {
             setTimeout(botMove, 500);
         }
     }
 
     function handleCellClick(macroIndex, microIndex) {
-        if (!microBoards || isGameOver || (gameMode === 'ai' && currentPlayer !== PLAYER_X)) return;
+        if (!microBoards || isGameOver || (gameMode === 'ai' && currentPlayer !== humanPlayer)) return;
         if ((activeMacroBoard !== -1 && activeMacroBoard !== macroIndex) || microBoards[macroIndex][microIndex] || macroBoard[macroIndex]) return;
-
         makeMove(macroIndex, microIndex, currentPlayer);
-        
         if (!isGameOver) {
-            const nextPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
+            const nextPlayer = currentPlayer === 'X' ? 'O' : 'X';
             processMove(microIndex, nextPlayer);
         }
     }
@@ -617,8 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const cell = ultimateBoard.querySelector(`[data-macro-index='${macroIndex}'] [data-micro-index='${microIndex}']`);
         const iconX = `<svg class="icon icon-x" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4 L20 20 M20 4 L4 20" /></svg>`;
         const iconO = `<svg class="icon icon-o" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" fill="none" d="M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2" /></svg>`;
-        cell.innerHTML = player === PLAYER_X ? iconX : iconO;
-        cell.classList.add(player === PLAYER_X ? 'player-x' : 'player-o');
+        cell.innerHTML = player === 'X' ? iconX : iconO;
+        cell.classList.add(player === 'X' ? 'player-x' : 'player-o');
         
         if (checkForMicroWin(macroIndex, player)) {
             playSound('miniwin');
@@ -643,8 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
         activeMacroBoard = macroBoard[nextBoardIndex] !== null ? -1 : nextBoardIndex;
         updateActiveBoards();
         updateGameStatus();
-        
-        if (gameMode === 'ai' && currentPlayer === PLAYER_O && !isGameOver) {
+        if (gameMode === 'ai' && currentPlayer === aiPlayer && !isGameOver) {
             setTimeout(botMove, 500);
         }
     }
@@ -654,23 +637,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const state = { boards: microBoards.map(b => b.slice()), meta: macroBoard.slice(), target: activeMacroBoard, turn: currentPlayer };
         const blob = new Blob([workerCode], { type: 'application/javascript' });
         aiWorker = new Worker(URL.createObjectURL(blob));
-        
         aiWorker.onmessage = (e) => {
             if (e.data) {
                 const { sb, idx } = e.data;
-                makeMove(sb, idx, PLAYER_O);
-                if (!isGameOver) processMove(idx, PLAYER_X);
+                makeMove(sb, idx, aiPlayer);
+                if (!isGameOver) processMove(idx, humanPlayer);
             }
             aiWorker.terminate();
-            aiWorker = null;
         };
-        
-        aiWorker.postMessage({ state, botPlayer: PLAYER_O });
+        aiWorker.postMessage({ state, botPlayer: aiPlayer });
     }
 
-    const checkForMicroWin = (idx, p) => winningConditions.some(c => c.every(i => microBoards[idx][i] === p));
-    const checkForMacroWin = (p) => winningConditions.some(c => c.every(i => macroBoard[i] === p));
-    
     function markMacroWin(macroIndex, winner) {
         const macroCell = ultimateBoard.querySelector(`[data-macro-index='${macroIndex}']`);
         macroCell.dataset.winner = winner;
@@ -689,9 +666,9 @@ document.addEventListener('DOMContentLoaded', () => {
        }
        if (activeMacroBoard === -1) {
             activeBoardHighlighter.style.opacity = '1';
-            activeBoardHighlighter.style.width = `${ultimateBoard.clientWidth - 12}px`;
-            activeBoardHighlighter.style.height = `${ultimateBoard.clientHeight - 12}px`;
-            activeBoardHighlighter.style.transform = `translate(6px, 6px)`;
+            activeBoardHighlighter.style.width = `${ultimateBoard.clientWidth - 10}px`;
+            activeBoardHighlighter.style.height = `${ultimateBoard.clientHeight - 10}px`;
+            activeBoardHighlighter.style.transform = `translate(5px, 5px)`;
         } else {
             const activeCell = ultimateBoard.querySelector(`[data-macro-index='${activeMacroBoard}']`);
             if (activeCell && !activeCell.dataset.winner) {
@@ -708,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showModeSelection() {
         modals.endGame.style.display = 'none';
+        welcomePlayerName.textContent = `Olá, ${player1Name}!`;
         modals.modeSelection.style.display = 'flex';
     }
     
@@ -718,32 +696,20 @@ document.addEventListener('DOMContentLoaded', () => {
         activeBoardHighlighter.style.opacity = '0';
         updateScores(winner);
         
+        const endGameContent = document.getElementById('end-game-modal-content');
         let content = '';
-        if (winner === PLAYER_X) {
+        if ((gameMode === 'ai' && winner === humanPlayer) || (gameMode === 'player' && winner === 'X')) {
             playSound('win');
-            content = `
-                <h2 class="winner-x">Parabéns, ${player1Name}!</h2>
-                <p>Você venceu a partida!</p>
-                <img src="https://placehold.co/200x200/eef2ff/4f46e5?text=🏆" alt="Troféu da vitória">
-            `;
-        } else if (winner === PLAYER_O) {
+            content = `<h2 class="winner-x">Parabéns, ${player1Name}!</h2><p>Você venceu a partida!</p><img src="https://placehold.co/200x200/eef2ff/4f46e5?text=🏆" alt="Troféu da vitória">`;
+        } else if ((gameMode === 'ai' && winner === aiPlayer) || (gameMode === 'player' && winner === 'O')) {
             const winnerName = gameMode === 'ai' ? 'Jon IA' : player2Name;
             playSound(gameMode === 'ai' ? 'lose' : 'win');
             const img = gameMode === 'ai' ? '<img src="https://media.tenor.com/x8v1oNUOmg4AAAAd/rickroll-roll.gif" alt="IA Rindo">' : '<img src="https://placehold.co/200x200/fee2e2/dc2626?text=🏆" alt="Troféu da vitória">';
             const message = gameMode === 'ai' ? 'A lógica sempre vence. Tente novamente!' : `${player2Name} venceu a partida!`;
-
-            content = `
-                <h2 class="winner-o">Vitória de ${winnerName}!</h2>
-                <p>${message}</p>
-                ${img}
-            `;
+            content = `<h2 class="winner-o">Vitória de ${winnerName}!</h2><p>${message}</p>${img}`;
         } else {
             playSound('tie');
-            content = `
-                <h2 class="winner-t">Empate!</h2>
-                <p>A partida terminou sem um vencedor. Bem jogado!</p>
-                <img src="https://placehold.co/200x200/e2e8f0/475569?text=🤝" alt="Aperto de mãos">
-            `;
+            content = `<h2 class="winner-t">Empate!</h2><p>A partida terminou sem um vencedor. Bem jogado!</p><img src="https://placehold.co/200x200/e2e8f0/475569?text=🤝" alt="Aperto de mãos">`;
         }
         endGameContent.innerHTML = content + `<button class="btn btn-primary end-game-button" style="margin-top: 1.5rem;">Voltar ao Menu</button>`;
         modals.endGame.style.display = 'flex';
@@ -751,12 +717,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateGameStatus() {
+        if (!gameMode) {
+            gameStatus.textContent = 'Clique em Jogar para começar';
+            return;
+        }
         if (isGameOver) return;
-        let turnName;
-        if (currentPlayer === PLAYER_X) {
-            turnName = player1Name;
+        let turnName = '';
+        if (gameMode === 'ai') {
+            turnName = currentPlayer === humanPlayer ? player1Name : 'Jon IA';
         } else {
-            turnName = (gameMode === 'ai') ? "Jon IA" : player2Name;
+            turnName = currentPlayer === 'X' ? player1Name : player2Name;
         }
         gameStatus.textContent = `É a vez de ${turnName} (${currentPlayer}).`;
     }
@@ -771,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
             playerScoreEl.textContent = p1Score.wins;
             botScoreEl.textContent = p1Score.losses;
             tieScoreEl.textContent = p1Score.ties;
-        } else {
+        } else if (gameMode === 'player') {
             playerScoreEl.textContent = p1Score.wins;
             botScoreEl.textContent = p2Score.wins;
             tieScoreEl.textContent = p1Score.ties;
@@ -780,19 +750,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function updateScores(winner) {
         if (!allPlayerScores[player1Name]) allPlayerScores[player1Name] = { wins: 0, losses: 0, ties: 0 };
-        if (gameMode === 'player' && !allPlayerScores[player2Name]) {
-            allPlayerScores[player2Name] = { wins: 0, losses: 0, ties: 0 };
-        }
+        if (gameMode === 'player' && !allPlayerScores[player2Name]) allPlayerScores[player2Name] = { wins: 0, losses: 0, ties: 0 };
 
         if (winner === 'T') {
             allPlayerScores[player1Name].ties++;
             if (gameMode === 'player') allPlayerScores[player2Name].ties++;
-        } else if (winner === PLAYER_X) {
+        } else if (winner === humanPlayer) {
             allPlayerScores[player1Name].wins++;
-            if (gameMode === 'player') allPlayerScores[player2Name].losses++;
-        } else if (winner === PLAYER_O) {
+        } else if (winner === aiPlayer) {
             allPlayerScores[player1Name].losses++;
-            if (gameMode === 'player') allPlayerScores[player2Name].wins++;
+        } else if (gameMode === 'player') {
+            if (winner === 'X') {
+                allPlayerScores[player1Name].wins++;
+                allPlayerScores[player2Name].losses++;
+            } else { // winner is O
+                allPlayerScores[player1Name].losses++;
+                allPlayerScores[player2Name].wins++;
+            }
         }
         localStorage.setItem('allPlayerScores', JSON.stringify(allPlayerScores));
         updateScoreboard();
@@ -800,73 +774,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showPlayerHistory(name) {
         const stats = allPlayerScores[name];
-        if (stats) {
-            playerHistoryDiv.textContent = `Histórico: ${stats.wins}V - ${stats.losses}D - ${stats.ties}E`;
-        } else {
-            playerHistoryDiv.textContent = 'Novo jogador! Boa sorte.';
-        }
+        playerHistoryDiv.textContent = stats ? `Histórico: ${stats.wins}V - ${stats.losses}D - ${stats.ties}E` : 'Novo jogador! Boa sorte.';
     }
     
     // --- EVENT LISTENERS E INICIALIZAÇÃO ---
-
-    startGameTriggerBtn.addEventListener('click', () => {
-        modals.p1Name.style.display = 'flex';
-        startGameOverlay.style.display = 'none';
-    });
-    
-    playerNameInput.addEventListener('input', () => {
-        showPlayerHistory(playerNameInput.value.trim());
-    });
-
-    confirmNameBtn.addEventListener('click', () => {
-        player1Name = playerNameInput.value.trim() || 'Jogador 1';
-        welcomePlayerName.textContent = `Olá, ${player1Name}!`;
-        modals.p1Name.style.display = 'none';
-        modals.modeSelection.style.display = 'flex';
-    });
-    
-    vsAiBtn.addEventListener('click', () => {
-        gameMode = 'ai';
-        player2Name = 'Jon IA';
-        playerNameLabel.textContent = `${player1Name} (X)`;
-        opponentNameLabel.textContent = `${player2Name} (O)`;
-        modals.modeSelection.style.display = 'none';
-        startGame();
-    });
-
-    vsPlayerBtn.addEventListener('click', () => {
-        gameMode = 'player';
-        modals.modeSelection.style.display = 'none';
-        modals.p2Name.style.display = 'flex';
-    });
-
-    confirmP2NameBtn.addEventListener('click', () => {
-        player2Name = p2NameInput.value.trim() || "Jogador 2";
-        playerNameLabel.textContent = `${player1Name} (X)`;
-        opponentNameLabel.textContent = `${player2Name} (O)`;
-        modals.p2Name.style.display = 'none';
-        startGame();
-    });
-
-    restartButton.addEventListener('click', () => {
-        startGameOverlay.style.display = 'flex';
-        gameStatus.textContent = 'Clique em Jogar para começar';
-    });
-    helpBtn.addEventListener('click', () => modals.instructions.style.display = 'flex');
-    objectiveBtn.addEventListener('click', () => modals.objective.style.display = 'flex');
-    
-    document.querySelectorAll('.modal-overlay .close-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.target.closest('.modal-overlay').style.display = 'none';
+    function setupEventListeners() {
+        document.getElementById('start-game-trigger-btn').addEventListener('click', () => {
+            modals.p1Name.style.display = 'flex';
+            document.getElementById('start-game-overlay').style.display = 'none';
         });
-    });
+        
+        playerNameInput.addEventListener('input', () => showPlayerHistory(playerNameInput.value.trim()));
 
-    soundBtn.addEventListener('click', toggleMute);
-    window.addEventListener('resize', updateActiveBoards);
+        confirmNameBtn.addEventListener('click', () => {
+            player1Name = playerNameInput.value.trim() || 'Jogador 1';
+            welcomePlayerName.textContent = `Olá, ${player1Name}!`;
+            modals.p1Name.style.display = 'none';
+            modals.modeSelection.style.display = 'flex';
+        });
+        
+        vsAiBtn.addEventListener('click', () => {
+            gameMode = 'ai';
+            player2Name = 'Jon IA';
+            
+            if (starterForNextGame === 'human') {
+                humanPlayer = 'X';
+                aiPlayer = 'O';
+            } else {
+                humanPlayer = 'O';
+                aiPlayer = 'X';
+            }
+            starterForNextGame = (starterForNextGame === 'human') ? 'ai' : 'human';
+            
+            playerNameLabel.textContent = `${player1Name} (${humanPlayer})`;
+            opponentNameLabel.textContent = `Jon IA (${aiPlayer})`;
 
-    // Inicialização
-    updateSoundButton();
-    createBoard();
+            modals.modeSelection.style.display = 'none';
+            startGame();
+        });
+
+        vsPlayerBtn.addEventListener('click', () => {
+            gameMode = 'player';
+            modals.modeSelection.style.display = 'none';
+            modals.p2Name.style.display = 'flex';
+        });
+
+        confirmP2NameBtn.addEventListener('click', () => {
+            player2Name = p2NameInput.value.trim() || "Jogador 2";
+            humanPlayer = 'X';
+            aiPlayer = 'O';
+            playerNameLabel.textContent = `${player1Name} (X)`;
+            opponentNameLabel.textContent = `${player2Name} (O)`;
+            modals.p2Name.style.display = 'none';
+            startGame();
+        });
+        
+        helpBtn.addEventListener('click', () => modals.instructions.style.display = 'flex');
+        objectiveBtn.addEventListener('click', () => modals.objective.style.display = 'flex');
+        
+        document.querySelectorAll('.modal-overlay .close-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => e.target.closest('.modal-overlay').style.display = 'none');
+        });
+
+        soundBtn.addEventListener('click', toggleMute);
+        themeBtn.addEventListener('click', toggleTheme);
+        window.addEventListener('resize', updateActiveBoards);
+    }
+
+    function initialize() {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const savedTheme = localStorage.getItem('theme');
+        if ((savedTheme === 'dark') || (!savedTheme && prefersDark)) {
+            document.body.classList.add('dark-theme');
+            updateThemeButton(true);
+        } else {
+            updateThemeButton(false);
+        }
+
+        updateSoundButton();
+        createBoard();
+        
+        const overlay = document.getElementById('start-game-overlay');
+        overlay.querySelector('button').addEventListener('click', () => {
+            modals.p1Name.style.display = 'flex';
+            overlay.style.display = 'none';
+        });
+        
+        setupEventListeners();
+        modals.objective.style.display = 'flex';
+    }
+
+    initialize();
 });
 </script>
 </body>
