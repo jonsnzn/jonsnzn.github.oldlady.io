@@ -8,7 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- ESTILOS GERAIS E TEMA --- */
         :root {
             --bg: #f0f2f5;
             --panel-bg: #ffffff;
@@ -20,6 +19,7 @@
             --secondary-bg: #ebf4ff;
             --secondary-text: #4c51bf;
             --danger: #e53e3e;
+            --danger-light: #f56565;
             --info: #4299e1;
             --success: #48bb78;
             --shadow: rgba(0, 0, 0, 0.05);
@@ -37,6 +37,7 @@
             --secondary-bg: #2c3548;
             --secondary-text: #a3bffa;
             --danger: #fc8181;
+            --danger-light: #f56565;
             --info: #63b3ed;
             --success: #68d391;
             --shadow: rgba(0, 0, 0, 0.1);
@@ -82,13 +83,11 @@
             line-height: 1.6;
         }
 
-        /* --- ANIMAÇÕES E TRANSIÇÕES --- */
         @keyframes draw-x { 0% { stroke-dashoffset: 29.5; } 100% { stroke-dashoffset: 0; } }
         @keyframes draw-o { 0% { stroke-dashoffset: 56.5; } 100% { stroke-dashoffset: 0; } }
         @keyframes winner-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes fade-in { 0% { opacity: 0; transform: translateY(10px); } 100% { opacity: 1; transform: translateY(0); } }
         
-        /* --- ESTILOS DO JOGO --- */
         #game-container {
             width: 95vw;
             max-width: 420px;
@@ -114,7 +113,6 @@
         .header-controls.left { justify-self: start; }
         .header-controls.right { justify-self: end; }
         
-        /* --- BOTÕES --- */
         .btn {
             border: none;
             border-radius: 8px;
@@ -153,6 +151,14 @@
         .btn-primary:hover { 
             background-image: linear-gradient(45deg, var(--primary-light), var(--primary)); 
             box-shadow: 0 6px 16px -2px color-mix(in srgb, var(--primary) 50%, transparent);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: var(--danger-light);
         }
 
         #game-scoreboard {
@@ -254,7 +260,6 @@
             padding: 5px;
         }
         
-        /* --- MODAIS --- */
         .modal-overlay {
             display: flex;
             position: fixed;
@@ -305,9 +310,9 @@
             margin-top: 1rem;
             min-height: 20px;
         }
-        .mode-selection-buttons { display: flex; flex-direction: column; gap: 1rem; }
+        .mode-selection-buttons, .symbol-selection-buttons { display: flex; flex-direction: column; gap: 1rem; }
+        .symbol-selection-buttons { flex-direction: row; }
 
-        /* --- TELA DE VITÓRIA/DERROTA --- */
         #end-game-modal-content { padding: 40px; }
         #end-game-modal-content h2 { font-size: 3rem; margin-bottom: 1rem; }
         #end-game-modal-content p { font-size: 1.2rem; margin-bottom: 2rem; }
@@ -316,7 +321,25 @@
         #end-game-modal-content .winner-o { color: var(--danger); }
         #end-game-modal-content .winner-t { color: var(--text-light); }
         
-        /* --- FOOTER/WATERMARK --- */
+        #history-ranking-list {
+            max-height: 300px;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .history-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .history-item:last-child { border-bottom: none; }
+        .history-item .name { font-weight: 600; }
+        .history-item .score { color: var(--text-light); }
+
         footer {
             grid-row: 2;
             width: 100%;
@@ -360,6 +383,9 @@
                 </div>
                 <h3>Jogo da Velha</h3>
                 <div class="header-controls right">
+                    <button id="history-btn" class="btn btn-icon" title="Logs de Jogadores">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    </button>
                     <button id="objective-btn" class="btn btn-icon" title="Sobre o Projeto">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 14v4"/><path d="M8.28 11.97A4.02 4.02 0 0 1 12 6a4 4 0 0 1 4 4c0 2.25-2 4-2 4h-4s-2-1.75-2-4c0-1.1.4-2.12 1.17-2.83"/></svg>
                     </button>
@@ -387,7 +413,6 @@
         </div>
     </main>
     
-    <!-- Modais de Jogo -->
     <div id="player-name-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
         <h2>Bem-vindo!</h2><p>Digite seu nome para começar:</p><input type="text" id="player-name-input" placeholder="Seu Nome" maxlength="12"><button id="confirm-name-btn" class="btn btn-primary">Confirmar</button><div id="player-history"></div>
     </div></div>
@@ -398,7 +423,6 @@
         <h2 id="welcome-player-name"></h2><p>Escolha um modo de jogo:</p><div class="mode-selection-buttons"><button id="vs-ai-btn" class="btn btn-primary">Jogador vs. Jon IA</button><button id="vs-player-btn" class="btn btn-primary">Jogador 1 vs. Jogador 2</button></div>
     </div></div>
     
-    <!-- Modais Informativos -->
     <div id="game-instructions-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
         <button class="btn btn-icon close-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         <h2>Como Jogar</h2>
@@ -419,8 +443,13 @@
         </ul>
         <p style="margin-top: 2rem;">Valeu por jogar e fazer parte disso!</p>
     </div></div>
+    <div id="history-modal" class="modal-overlay" style="display: none;"><div class="modal-content">
+        <button class="btn btn-icon close-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        <h2>Ranking de Jogadores</h2>
+        <div id="history-ranking-list"></div>
+        <button id="clear-history-btn" class="btn btn-danger" style="margin-top: 1.5rem; width: auto; padding: 8px 16px;">Limpar Histórico</button>
+    </div></div>
 
-    <!-- Modal de Fim de Jogo -->
     <div id="end-game-modal" class="modal-overlay" style="display: none;"><div id="end-game-modal-content" class="modal-content"></div></div>
 
     <footer>&copy; 2025 João Neves. Todos os direitos reservados.</footer>
@@ -428,7 +457,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- ELEMENTOS DO DOM ---
     const gameStatus = document.getElementById('game-status');
     const ultimateBoard = document.getElementById('ultimate-board');
     const soundBtn = document.getElementById('sound-toggle-btn');
@@ -444,10 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
         p1Name: document.getElementById('player-name-modal'),
         p2Name: document.getElementById('player2-name-modal'),
         modeSelection: document.getElementById('mode-selection-modal'),
+        history: document.getElementById('history-modal'),
         endGame: document.getElementById('end-game-modal')
     };
     const helpBtn = document.getElementById('game-help-btn');
     const objectiveBtn = document.getElementById('objective-btn');
+    const historyBtn = document.getElementById('history-btn');
+    const clearHistoryBtn = document.getElementById('clear-history-btn');
     const playerNameInput = document.getElementById('player-name-input');
     const confirmNameBtn = document.getElementById('confirm-name-btn');
     const playerHistoryDiv = document.getElementById('player-history');
@@ -463,21 +494,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const botScoreEl = document.getElementById('bot-score');
     const tieScoreEl = document.getElementById('tie-score');
 
-    // --- CÓDIGO DA IA (WEB WORKER) ---
-    const workerCode = `const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const ORDER=[4,0,2,6,8,1,3,5,7];function opp(p){return p==='X'?'O':'X'}
-function cloneState(s){return{boards:s.boards.map(b=>b.slice()),meta:s.meta.slice(),target:s.target,turn:s.turn}}
-function winnerOfBoard(b){for(const[a,c,d]of LINES){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return b[a]}return b.includes(null)?null:'draw'}
-function recomputeMeta(s){for(let i=0;i<9;i++){if(s.meta[i]==null)s.meta[i]=winnerOfBoard(s.boards[i])}}
-function legalMoves(s){recomputeMeta(s);const m=[],t=[];if(s.target===-1||s.meta[s.target]!=null){for(let sb=0;sb<9;sb++){if(s.meta[sb]==null)t.push(sb)}}else{t.push(s.target)}for(const sb of t){const b=s.boards[sb];for(const i of ORDER){if(b[i]==null)m.push({sb,idx:i})}}return m}
-function applyMove(s,mv){s.boards[mv.sb][mv.idx]=s.turn;s.meta[mv.sb]=winnerOfBoard(s.boards[mv.sb]);s.target=mv.idx;if(s.meta[s.target]!=null)s.target=-1;s.turn=opp(s.turn);return s}
-function evaluate(s,me){recomputeMeta(s);const th=opp(me);let S=0;const m=s.meta.map(v=>v===me?me:v===th?th:null);for(const L of LINES){const a=[m[L[0]],m[L[1]],m[L[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3)return 9e3;if(t===3)return-9e3;if(M===2&&t===0)S+=120;if(t===2&&M===0)S-=140;if(M===1&&t===0)S+=20;if(t===1&&M===0)S-=20}for(let i=0;i<9;i++){if(s.meta[i]===null){const w=s.target===-1||s.target===i?1.7:1;let s_b=0;const b=s.boards[i];for(const L of LINES){const a=[b[L[0]],b[L[1]],b[L[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3){s_b+=140}else if(t===3){s_b-=140}else{if(M===2&&t===0)s_b+=7;if(t===2&&M===0)s_b-=9;if(M===1&&t===0)s_b+=2;if(t===1&&M===0)s_b-=2}}S+=w*s_b}}return S}
-function bestMove(s,p){const m=legalMoves(s);if(m.length===0)return null;if(m.length===1)return m[0];let bm=null,bs=-1/0;for(const mv of m){const s2=cloneState(s);applyMove(s2,mv);const v=-minimax(s2,4,-1/0,1/0);if(v>bs){bs=v;bm=mv}}return bm}
-function minimax(s,d,a,b){const w=winnerOfBoard(s.meta);if(w!==null)return(w===s.turn?1e5:-1e5)-d;if(d===0)return evaluate(s,s.turn);const m=legalMoves(s);if(m.length===0)return 0;for(const mv of m){const s2=cloneState(s);applyMove(s2,mv);const v=-minimax(s2,d-1,-b,-a);if(v>=b)return b;if(v>a)a=v}return a}
-self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPlayer);self.postMessage(move);self.close()};`;
+    const workerCode = `const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const O=[4,0,2,6,8,1,3,5,7];function g(p){return p==='X'?'O':'X'}
+function q(s){return{boards:s.boards.map(b=>b.slice()),meta:s.meta.slice(),target:s.target,turn:s.turn}}
+function z(b){for(const[a,c,d]of L){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return b[a]}return b.includes(null)?null:'draw'}
+function A(s){for(let i=0;i<9;i++){if(s.meta[i]==null)s.meta[i]=z(s.boards[i])}}
+function B(s){A(s);const m=[],t=[];if(s.target===-1||s.meta[s.target]!=null){for(let i=0;i<9;i++){if(s.meta[i]==null)t.push(i)}}else{t.push(s.target)}for(const i of t){const b=s.boards[i];for(const j of O){if(b[j]==null)m.push({sb:i,idx:j})}}return m}
+function C(s,mv){s.boards[mv.sb][mv.idx]=s.turn;s.meta[mv.sb]=z(s.boards[mv.sb]);s.target=mv.idx;if(s.meta[s.target]!=null)s.target=-1;s.turn=g(s.turn);return s}
+function D(s,me){A(s);const th=g(me);let S=0;const m=s.meta.map(v=>v===me?me:v===th?th:null);for(const l of L){const a=[m[l[0]],m[l[1]],m[l[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3)return 9e3;if(t===3)return-9e3;if(M===2&&t===0)S+=120;if(t===2&&M===0)S-=140;if(M===1&&t===0)S+=20;if(t===1&&M===0)S-=20}for(let i=0;i<9;i++){if(s.meta[i]===null){const w=s.target===-1||s.target===i?1.7:1;let sb=0;const b=s.boards[i];for(const l of L){const a=[b[l[0]],b[l[1]],b[l[2]]];let M=0,t=0;for(const c of a){if(c===me)M++;else if(c===th)t++}if(M===3){sb+=140}else if(t===3){sb-=140}else{if(M===2&&t===0)sb+=7;if(t===2&&M===0)sb-=9;if(M===1&&t===0)sb+=2;if(t===1&&M===0)sb-=2}}S+=w*sb}}return S}
+function E(s,p){const m=B(s);if(m.length===0)return null;if(m.length===1)return m[0];let bm=null,bs=-1/0;for(const mv of m){const s2=q(s);C(s2,mv);const v=-F(s2,4,-1/0,1/0);if(v>bs){bs=v;bm=mv}}return bm}
+function F(s,d,a,b){const w=z(s.meta);if(w!==null)return(w===s.turn?1e5:-1e5)-d;if(d===0)return D(s,s.turn);const m=B(s);if(m.length===0)return 0;for(const mv of m){const s2=q(s);C(s2,mv);const v=-F(s2,d-1,-b,-a);if(v>=b)return b;if(v>a)a=v}return a}
+self.onmessage=e=>{const{state:s,botPlayer:p}=e.data;const move=E(s,p);self.postMessage(move);self.close()};`;
 
-    // --- CONTROLE DE SOM E TEMA ---
     let audioCtx;
     let isMuted = localStorage.getItem('isMuted') === 'true';
+    let humanPlayer, aiPlayer;
+    let microBoards, macroBoard, currentPlayer, activeMacroBoard, isGameOver, activeBoardHighlighter, aiWorker;
+    let gameMode, player1Name = 'Jogador 1', player2Name = 'Jogador 2';
+    let allPlayerScores = JSON.parse(localStorage.getItem('allPlayerScores')) || {};
+    let starterForNextGame = 'human';
+
+    const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
+    const checkForMicroWin = (idx, p) => winningConditions.some(c => c.every(i => microBoards[idx][i] === p));
+    const checkForMacroWin = (p) => winningConditions.some(c => c.every(i => macroBoard[i] === p));
 
     function playSound(type) {
         if (isMuted) return;
@@ -526,18 +564,6 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         iconThemeSun.style.display = isDark ? 'block' : 'none';
         iconThemeMoon.style.display = isDark ? 'none' : 'block';
     }
-
-    // --- VARIÁVEIS DE ESTADO DO JOGO ---
-    let humanPlayer, aiPlayer;
-    let microBoards, macroBoard, currentPlayer, activeMacroBoard, isGameOver, activeBoardHighlighter, aiWorker;
-    let gameMode, player1Name = 'Jogador 1', player2Name = 'Jogador 2';
-    let allPlayerScores = JSON.parse(localStorage.getItem('allPlayerScores')) || {};
-    let starterForNextGame = 'human';
-
-    // --- FUNÇÕES PRINCIPAIS DO JOGO ---
-    const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
-    const checkForMicroWin = (idx, p) => winningConditions.some(c => c.every(i => microBoards[idx][i] === p));
-    const checkForMacroWin = (p) => winningConditions.some(c => c.every(i => macroBoard[i] === p));
 
     function createBoard() {
         ultimateBoard.innerHTML = '';
@@ -731,8 +757,6 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         gameStatus.textContent = `É a vez de ${turnName} (${currentPlayer}).`;
     }
     
-    // --- FUNÇÕES DE PLACAR E UI ---
-    
     function updateScoreboard() {
         const p1Score = allPlayerScores[player1Name] || { wins: 0, losses: 0, ties: 0 };
         const p2Score = allPlayerScores[player2Name] || { wins: 0, losses: 0, ties: 0 };
@@ -755,18 +779,12 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         if (winner === 'T') {
             allPlayerScores[player1Name].ties++;
             if (gameMode === 'player') allPlayerScores[player2Name].ties++;
-        } else if (winner === humanPlayer) {
+        } else if ((gameMode === 'ai' && winner === humanPlayer) || (gameMode === 'player' && winner === 'X')) {
             allPlayerScores[player1Name].wins++;
-        } else if (winner === aiPlayer) {
+            if (gameMode === 'player') allPlayerScores[player2Name].losses++;
+        } else { // AI or Player 2 wins
             allPlayerScores[player1Name].losses++;
-        } else if (gameMode === 'player') {
-            if (winner === 'X') {
-                allPlayerScores[player1Name].wins++;
-                allPlayerScores[player2Name].losses++;
-            } else { // winner is O
-                allPlayerScores[player1Name].losses++;
-                allPlayerScores[player2Name].wins++;
-            }
+            if (gameMode === 'player') allPlayerScores[player2Name].wins++;
         }
         localStorage.setItem('allPlayerScores', JSON.stringify(allPlayerScores));
         updateScoreboard();
@@ -777,7 +795,6 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         playerHistoryDiv.textContent = stats ? `Histórico: ${stats.wins}V - ${stats.losses}D - ${stats.ties}E` : 'Novo jogador! Boa sorte.';
     }
     
-    // --- EVENT LISTENERS E INICIALIZAÇÃO ---
     function setupEventListeners() {
         document.getElementById('start-game-trigger-btn').addEventListener('click', () => {
             modals.p1Name.style.display = 'flex';
@@ -831,6 +848,20 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         
         helpBtn.addEventListener('click', () => modals.instructions.style.display = 'flex');
         objectiveBtn.addEventListener('click', () => modals.objective.style.display = 'flex');
+        historyBtn.addEventListener('click', () => {
+            const password = prompt('Acesso restrito. Digite a senha:');
+            if (password === '2077') {
+                showHistoryModal();
+            }
+        });
+
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja apagar todo o histórico de jogadores? Esta ação não pode ser desfeita.')) {
+                allPlayerScores = {};
+                localStorage.removeItem('allPlayerScores');
+                modals.history.style.display = 'none';
+            }
+        });
         
         document.querySelectorAll('.modal-overlay .close-btn').forEach(btn => {
             btn.addEventListener('click', (e) => e.target.closest('.modal-overlay').style.display = 'none');
@@ -841,24 +872,32 @@ self.onmessage=e=>{const{state,botPlayer}=e.data;const move=bestMove(state,botPl
         window.addEventListener('resize', updateActiveBoards);
     }
 
-    function initialize() {
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const savedTheme = localStorage.getItem('theme');
-        if ((savedTheme === 'dark') || (!savedTheme && prefersDark)) {
-            document.body.classList.add('dark-theme');
-            updateThemeButton(true);
-        } else {
-            updateThemeButton(false);
-        }
+    function showHistoryModal() {
+        const rankingList = document.getElementById('history-ranking-list');
+        rankingList.innerHTML = '';
+        const scores = Object.entries(allPlayerScores);
 
+        if (scores.length === 0) {
+            rankingList.innerHTML = '<p>Nenhum histórico encontrado.</p>';
+        } else {
+            scores.sort(([, a], [, b]) => b.wins - a.wins || a.losses - b.losses)
+                .forEach(([name, stats]) => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `<span class="name">${name}</span> <span class="score">${stats.wins}V - ${stats.losses}D - ${stats.ties}E</span>`;
+                    rankingList.appendChild(item);
+                });
+        }
+        modals.history.style.display = 'flex';
+    }
+
+    function initialize() {
+        document.body.classList.remove('dark-theme');
+        updateThemeButton(false);
+        
         updateSoundButton();
         createBoard();
-        
-        const overlay = document.getElementById('start-game-overlay');
-        overlay.querySelector('button').addEventListener('click', () => {
-            modals.p1Name.style.display = 'flex';
-            overlay.style.display = 'none';
-        });
+        document.getElementById('game-container').appendChild(document.getElementById('start-game-overlay'));
         
         setupEventListeners();
         modals.objective.style.display = 'flex';
