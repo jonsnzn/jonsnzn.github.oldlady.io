@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha Supremo by João Neves</title>
+    <style>
+        /* --- ESTILOS GERAIS E DE TEMA --- */
+        :root {
+            --bg: #f4f7fa;
+            --panel-bg: #ffffff;
+            --text: #0f172a;
+            --text-light: #475569;
+            --border: #e2e8f0;
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --secondary-bg: #eef2ff;
+            --secondary-text: #3730a3;
+            --danger: #dc2626;
+            --info: #3b82f6;
+            --success: #16a34a;
+            --danger-bg: #fee2e2;
+            --info-bg: #dbeafe;
+            --success-bg: #dcfce7;
+        }
+        html {
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+        }
+        *, *:before, *:after { 
+            box-sizing: inherit; 
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            height: 100vh;
+            width: 100vw;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        main { text-align: center; }
+        h1 { font-size: 2.2rem; color: var(--primary); margin-bottom: 0.5rem; }
+        p.subtitle { font-size: 1.1rem; color: var(--text-light); max-width: 600px; margin-bottom: 1.5rem; }
+
+        /* --- ANIMAÇÕES --- */
+        @keyframes draw-x { 0% { stroke-dashoffset: 29.5; } 100% { stroke-dashoffset: 0; } }
+        @keyframes draw-o { 0% { stroke-dashoffset: 56.5; } 100% { stroke-dashoffset: 0; } }
+        @keyframes winner-pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes fade-in { 0% { opacity: 0; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
+        
+        /* --- ESTILOS DO JOGO --- */
+        #game-container {
+            width: 95vw;
+            max-width: 480px;
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            animation: fade-in 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .game-header h3 { font-size: 1.2rem; font-weight: 600; }
+        .header-controls { display: flex; gap: 10px; }
+        
+        /* --- BOTÕES --- */
+        .btn {
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); box-shadow: none; }
+
+        .btn-icon {
+            background: var(--secondary-bg);
+            color: var(--secondary-text);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+        }
+        .btn-icon:hover { 
+            background-color: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        .btn-icon svg { width: 18px; height: 18px; }
+
+        .btn-primary {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            background-color: var(--primary);
+            color: white;
+            width: 100%;
+        }
+        .btn-primary:hover { 
+            background-color: var(--primary-light); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        #game-scoreboard {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            justify-content: space-around;
+            background-color: var(--bg);
+            padding: 10px;
+            border-radius: 10px;
+            align-items: center;
+        }
+        .score-item { text-align: center; }
+        .score-item .label { font-size: 0.85rem; font-weight: 500; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px;}
+        .score-item .score { font-size: 1.5rem; font-weight: 700; }
+        #player-score { color: var(--info); }
+        #bot-score { color: var(--danger); }
+        
+        #ultimate-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            background-color: var(--border);
+            border: 3px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            position: relative;
+        }
+        #start-game-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px; /* Match parent */
+            cursor: pointer;
+        }
+        #start-game-trigger-btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        #start-game-trigger-btn:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        
+        #ultimate-board.game-over .micro-cell { cursor: not-allowed; }
+        #active-board-highlighter {
+            position: absolute;
+            background-color: color-mix(in srgb, var(--primary) 20%, transparent);
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            z-index: 1;
+            pointer-events: none;
+            transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+        }
+        .macro-cell {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3px;
+            background-color: var(--border);
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .micro-cell {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--panel-bg);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .macro-cell:not(.macro-winner-cell) .micro-cell:hover { background-color: var(--secondary-bg); }
+        .micro-cell.player-x .icon-x path { stroke: var(--info); animation: draw-x 0.4s forwards; }
+        .micro-cell.player-o .icon-o path { stroke: var(--danger); animation: draw-o 0.4s forwards; }
+        
+        .macro-cell .icon { width: 70%; height: 70%; }
+        .icon-x path, .icon-o path { stroke-width: 2.5; stroke-dasharray: 57; stroke-dashoffset: 57; }
+        
+        .macro-cell[data-winner="T"] { background-color: var(--secondary-bg); }
+        .macro-winner-cell {
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(2rem, 12vw, 6rem);
+            font-weight: 900;
+            line-height: 1;
+            animation: winner-pop 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: not-allowed;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+        .macro-winner-cell.winner-x { color: var(--info); background-color: color-mix(in srgb, var(--info-bg) 80%, white) !important; }
+        .macro-winner-cell.winner-o { color: var(--danger); background-color: color-mix(in srgb, var(--danger-bg) 80%, white) !important; }
+
+        #game-status {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-light);
+            min-height: 22px;
+            padding: 5px;
+        }
+        
+        /* --- MODAIS --- */
+        .modal-overlay {
+            display: flex;
+            position: fixed;
+            z-index: 1001;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            animation: fade-in 0.3s ease-out;
+        }
+        .modal-content {
+            background-color: var(--panel-bg);
+            padding: 30px;
+            border: 1px solid var(--border);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+        }
+        .modal-content h2 { margin-bottom: 0.75rem; font-size: 1.8rem; }
+        .modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem; color: var(--text-light); }
+        .modal-content ul { margin-bottom: 1.5rem; padding-left: 20px; text-align: left; }
+        .modal-content li { margin-bottom: 10px; }
+        .modal-content strong { color: var(--primary); }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+        }
+        #player-history {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 1rem;
+            min-height: 20px;
+        }
+        .mode-selection-buttons { display: flex; flex-direction: column; gap: 1rem; }
+
+        /* --- TELA DE VITÓRIA/DERROTA --- */
+        #end-game-modal-content {
+            padding: 40px;
+        }
+        #end-game-modal-content h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        #end-game-modal-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        #end-game-modal-content img {
+            max-width: 150px;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        #end-game-modal-content .winner-x { color: var(--info); }
+        #end-game-modal-content .winner-o { color: var(--danger); }
+        #end-game-modal-content .winner-t { color: var(--text-light); }
+        
+        /* --- FOOTER/WATERMARK --- */
+        footer {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            p.subtitle { font-size: 1rem; }
+            .modal-content { padding: 25px; }
+            .modal-content h2 { font-size: 1.5rem; }
+            #end-game-modal-content h2 { font-size: 2.2rem; }
+            #game-scoreboard { grid-template-columns: 1fr auto 1fr; gap: 5px;}
+        }
+
+    </style>
+</head>
+<body>
+    <main id="app-container">
+        <h1>Jogo da Velha Supremo</h1>
+        <p class="subtitle">Desafie a Jon IA ou um amigo e ajude a treinar uma inteligência artificial.</p>
+
+        <div id="game-container">
+            <div class="game-header">
+                <div class="header-controls left">
+                    <button id="sound-toggle-btn" class="btn btn-icon" title="Ativar/Desativar Som">
+                        <svg id="icon-sound-on" xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <svg id="icon-sound-off" style="display: none;" xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    </button>
+                </div>
+                <h3>Jogo da Velha</h3>
+                <div class="header-controls right">
+                    <button id="objective-btn" class="btn btn-icon" title="Sobre o Projeto">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-4.286 1.35-4.286-2.55-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.791-.3 5.5-1.366 5.5-6.04 0-1.33-.48-2.42-1.28-3.28.13-.3.54-1.54-.12-3.23 0 0-1.02-.33-3.33 1.23A11.5 11.5 0 0 0 10 4.5c-1.02 0-2.03.13-3 .4-2.3-1.56-3.32-1.23-3.32-1.23-.66 1.69-.25 2.93-.12 3.23-.8.86-1.28 1.95-1.28 3.28 0 4.68 2.71 5.74 5.5 6.04-.6.55-.5 1.5-.5 2V21"/></svg>
+                    </button>
+                    <button id="game-help-btn" class="btn btn-icon" title="Como Jogar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="game-scoreboard">
+                <div class="score-item">
+                    <div class="label" id="player-name-label">Jogador 1 (X)</div>
+                    <div class="score" id="player-score">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label">Empates</div>
+                    <div class="score" id="tie-score">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="label" id="opponent-name-label">Jon IA (O)</div>
+                    <div class="score" id="bot-score">0</div>
+                </div>
+            </div>
+            <div id="ultimate-board">
+                 <div id="start-game-overlay">
+                    <button id="start-game-trigger-btn" class="btn btn-primary">Jogar</button>
+                </div>
+            </div>
+            <p id="game-status">Clique em Jogar para começar</p>
+            <button id="restart-game-btn" class="btn btn-primary">Voltar ao Menu</button>
+        </div>
+    </main>
+    
+    <!-- Modal de Nome do Jogador 1 -->
+    <div id="player-name-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Bem-vindo!</h2>
+            <p>Digite seu nome para começar:</p>
+            <input type="text" id="player-name-input" placeholder="Seu Nome (Jogador 1)" maxlength="12">
+            <button id="confirm-name-btn" class="btn btn-primary">Confirmar</button>
+            <div id="player-history"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Nome do Jogador 2 -->
+    <div id="player2-name-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Jogador 2</h2>
+            <p>Digite o nome do segundo jogador:</p>
+            <input type="text" id="player2-name-input" placeholder="Nome do Jogador 2" maxlength="12">
+            <button id="confirm-p2-name-btn" class="btn btn-primary">Iniciar Jogo</button>
+        </div>
+    </div>
+
+    <!-- Modal de Seleção de Modo -->
+    <div id="mode-selection-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="welcome-player-name"></h2>
+            <p>Escolha um modo de jogo:</p>
+            <div class="mode-selection-buttons">
+                <button id="vs-ai-btn" class="btn btn-primary">Jogador vs. Jon IA</button>
+                <button id="vs-player-btn" class="btn btn-primary">Jogador 1 vs. Jogador 2</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modais Informativos -->
+    <div id="game-instructions-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="btn btn-icon close-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2>Como Jogar</h2>
+            <ul>
+                <li><strong>Objetivo:</strong> Vencer 3 mini-tabuleiros em linha, coluna ou diagonal.</li>
+                <li><strong>A Regra de Ouro:</strong> A casa que você joga em um mini-tabuleiro <strong>determina</strong> para qual mini-tabuleiro o oponente deve jogar.</li>
+                <li><strong>Exemplo:</strong> Se você joga no <strong>canto superior direito</strong>, seu oponente é forçado a jogar no tabuleiro do <strong>canto superior direito</strong>.</li>
+                <li><strong>Tabuleiro Livre:</strong> Se sua jogada enviar o oponente para um tabuleiro já ganho ou empatado, ele poderá jogar em <strong>qualquer outro tabuleiro livre</strong>.</li>
+            </ul>
+        </div>
+    </div>
+    <div id="project-objective-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button class="btn btn-icon close-btn">
+                <svg xmlns="http://www.w.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2>Sobre Este Projeto</h2>
+            <p style="text-align: left; margin: 1rem 0;">
+                Este jogo foi desenvolvido por <strong>João Neves</strong> com dois objetivos principais:
+            </p>
+            <ul style="text-align: left;">
+                <li>Treinar e aprimorar a inteligência artificial "Jon IA" para implementação em projetos futuros.</li>
+                <li>Testar e aprofundar meus conhecimentos em programação e desenvolvimento de jogos.</li>
+            </ul>
+            <p>Obrigado por jogar e ajudar no desenvolvimento!</p>
+        </div>
+    </div>
+
+    <!-- Modal de Fim de Jogo -->
+    <div id="end-game-modal" class="modal-overlay" style="display: none;">
+        <div id="end-game-modal-content" class="modal-content">
+            <!-- Conteúdo dinâmico será injetado aqui -->
+        </div>
+    </div>
+
+    <footer>&copy; 2025 João Neves. Todos os direitos reservados.</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- ELEMENTOS DO DOM ---
+    const gameStatus = document.getElementById('game-status');
+    const restartButton = document.getElementById('restart-game-btn');
+    const playerScoreEl = document.getElementById('player-score');
+    const botScoreEl = document.getElementById('bot-score');
+    const tieScoreEl = document.getElementById('tie-score');
+    const ultimateBoard = document.getElementById('ultimate-board');
+    const soundBtn = document.getElementById('sound-toggle-btn');
+    const iconSoundOn = document.getElementById('icon-sound-on');
+    const iconSoundOff = document.getElementById('icon-sound-off');
+    const startGameOverlay = document.getElementById('start-game-overlay');
+    const startGameTriggerBtn = document.getElementById('start-game-trigger-btn');
+    
+    // Modais e Botões de Controle
+    const modals = {
+        instructions: document.getElementById('game-instructions-modal'),
+        objective: document.getElementById('project-objective-modal'),
+        p1Name: document.getElementById('player-name-modal'),
+        p2Name: document.getElementById('player2-name-modal'),
+        modeSelection: document.getElementById('mode-selection-modal'),
+        endGame: document.getElementById('end-game-modal')
+    };
+    const helpBtn = document.getElementById('game-help-btn');
+    const objectiveBtn = document.getElementById('objective-btn');
+    const playerNameInput = document.getElementById('player-name-input');
+    const confirmNameBtn = document.getElementById('confirm-name-btn');
+    const playerHistoryDiv = document.getElementById('player-history');
+    const welcomePlayerName = document.getElementById('welcome-player-name');
+    const vsAiBtn = document.getElementById('vs-ai-btn');
+    const vsPlayerBtn = document.getElementById('vs-player-btn');
+    const endGameContent = document.getElementById('end-game-modal-content');
+    const p2NameInput = document.getElementById('player2-name-input');
+    const confirmP2NameBtn = document.getElementById('confirm-p2-name-btn');
+
+    const playerNameLabel = document.getElementById('player-name-label');
+    const opponentNameLabel = document.getElementById('opponent-name-label');
+
+    // --- CÓDIGO DA IA (WEB WORKER) ---
+    const workerCode = `
+        const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        const ORDER=[4,0,2,6,8,1,3,5,7];
+        function opp(p){return p==='X'?'O':'X';}
+        function cloneState(s){return{boards:s.boards.map(b=>b.slice()),meta:s.meta.slice(),target:s.target,turn:s.turn};}
+        function winnerOfBoard(b){for(const[a,c,d]of LINES){if(b[a]&&b[a]===b[c]&&b[a]===b[d])return b[a];}return b.includes(null)?null:'draw';}
+        function recomputeMeta(s){for(let i=0;i<9;i++){if(s.meta[i]==null)s.meta[i]=winnerOfBoard(s.boards[i]);}}
+        function winnerOfMeta(m){for(const[a,b,c]of LINES){if(m[a]&&m[a]!=='draw'&&m[a]===m[b]&&m[a]===m[c])return m[a];}return m.some(x=>x==null)?null:'draw';}
+        function emptyCount(s){let n=0;for(let sb=0;sb<9;sb++){if(s.meta[sb]!=null)continue;const b=s.boards[sb];for(let i=0;i<9;i++)if(b[i]==null)n++;}return n;}
+        function hasImmediateWin(b,p){for(const L of LINES){const[a,c,d]=L;const C=[b[a],b[c],b[d]];const cP=C.filter(x=>x===p).length;const cE=C.filter(x=>x==null).length;if(cP===2&&cE===1)return true;}return false;}
+        function legalMoves(s){recomputeMeta(s);const m=[];const t=[];if(s.target===-1||s.meta[s.target]!=null){for(let sb=0;sb<9;sb++){if(s.meta[sb]==null)t.push(sb);}}else{t.push(s.target);}for(const sb of t){const b=s.boards[sb];for(const i of ORDER){if(b[i]==null)m.push({sb,idx:i});}}return m;}
+        function applyMove(s,mv){s.boards[mv.sb][mv.idx]=s.turn;s.meta[mv.sb]=winnerOfBoard(s.boards[mv.sb]);s.target=mv.idx;if(s.meta[s.target]!=null)s.target=-1;s.turn=opp(s.turn);return s;}
+        function scoreLine3(c,me,th){let m=0,t=0,e=0;for(const C of c){if(C===me)m++;else if(C===th)t++;else e++;}if(m===3)return 100;if(t===3)return-100;if(m===2&&e===1)return 7;if(t===2&&e===1)return-9;if(m===1&&e===2)return 2;if(t===1&&e===2)return-2;return 0;}
+        function evalSub(b,me,th){const w=winnerOfBoard(b);if(w===me)return 140;if(w===th)return-140;if(w==='draw')return 0;let s=0;for(const L of LINES){s+=scoreLine3([b[L[0]],b[L[1]],b[L[2]]],me,th);}const P=[3,2,3,2,5,2,3,2,3];for(let i=0;i<9;i++){if(b[i]===me)s+=P[i];else if(b[i]===th)s-=P[i];}return s;}
+        function evalMeta(m,me,th){const w=winnerOfMeta(m);if(w===me)return 9000;if(w===th)return-9000;if(w==='draw')return 0;const c=m.map(v=>v===me?me:(v===th?th:null));let s=0;for(const L of LINES){const a=[c[L[0]],c[L[1]],c[L[2]]];let M=0,t=0,e=0;for(const C of a){if(C===me)M++;else if(C===th)t++;else e++;}if(M===2&&e===1)s+=120;if(t===2&&e===1)s-=140;if(M===1&&e===2)s+=20;if(t===1&&e===2)s-=20;}return s;}
+        function evaluate(s,me){const th=opp(me);recomputeMeta(s);let S=evalMeta(s.meta,me,th);for(let sb=0;sb<9;sb++){if(s.meta[sb]==null){const w=(s.target===-1||s.target===sb)?1.7:1.0;S+=w*evalSub(s.boards[sb],me,th);}}if(s.target!==-1&&s.meta[s.target]==null){const b=s.boards[s.target];if(hasImmediateWin(b,th))S-=25;}return S;}
+        function orderMoves(s,me,mvs){const th=opp(me);const o=[];for(const mv of mvs){const b=s.boards[mv.sb];let sc=0;const tmp=b[mv.idx];b[mv.idx]=me;if(winnerOfBoard(b)===me)sc+=2000;b[mv.ax]=th;if(winnerOfBoard(b)===th)sc+=600;b[mv.idx]=tmp;sc+=(mv.idx===4?9:([0,2,6,8].includes(mv.idx)?5:2));const snd=mv.idx;if(s.meta[snd]===me)sc+=40;if(s.meta[snd]===th)sc-=25;if(s.target===mv.sb)sc+=8;o.push({mv,sc});}o.sort((a,b)=>b.sc-a.sc);return o.map(x=>x.mv);}
+        function minimax(s,d,mD,a,b,me,iM,dl){recomputeMeta(s);const w=winnerOfMeta(s.meta);if(w===me)return 100000-d;if(w===opp(me))return-100000+d;if(w==='draw')return 0;if(d>=mD||(dl&&Date.now()>=dl)){return evaluate(s,me);}const mvs0=legalMoves(s);const mvs=orderMoves(s,me,mvs0);if(!mvs.length)return evaluate(s,me);if(iM){let B=-Infinity;for(const mv of mvs){const s2=cloneState(s);let ext=0;if(s2.target===-1||s2.target===mv.sb){const B=s2.boards[mv.sb];if(hasImmediateWin(B,me)||hasImmediateWin(B,opp(me)))ext=1;}applyMove(s2,mv);const v=minimax(s2,d+1,mD+ext,a,b,me,false,dl);if(v>B)B=v;if(v>a)a=v;if(b<=a)break;}return B;}else{let B=Infinity;for(const mv of mvs){const s2=cloneState(s);let ext=0;if(s2.target===-1||s2.target===mv.sb){const B=s2.boards[mv.sb];if(hasImmediateWin(B,me)||hasImmediateWin(B,opp(me)))ext=1;}applyMove(s2,mv);const v=minimax(s2,d+1,mD+ext,a,b,me,true,dl);if(v<B)B=v;if(v<b)b=v;if(b<=a)break;}return B;}}
+        function bestMove(s,ai,opts={}){const bD=opts.maxDepth??8;const tM=opts.timeMs??1500;const dl=Date.now()+tM;const mvs=legalMoves(s);if(!mvs.length)return null;let b=null;let bV=-Infinity;const em=emptyCount(s);let mD=bD;if(em<=22)mD+=1;if(em<=14)mD+=2;const ord=orderMoves(s,ai,mvs);for(let d=4;d<=mD;d++){if(Date.now()>=dl)break;let lB=b,lBV=bV;for(const mv of ord){if(Date.now()>=dl)break;const s2=cloneState(s);applyMove(s2,mv);const v=minimax(s2,1,d,-Infinity,Infinity,ai,false,dl);if(v>lBV){lBV=v;lB=mv;}}if(lB){b=lB;bV=lBV;}}return b??ord[0];}
+        self.onmessage=function(e){const{state,botPlayer}=e.data;const move=bestMove(state,botPlayer);self.postMessage(move);self.close();};
+    `;
+
+    // --- CONTROLE DE SOM ---
+    let audioCtx;
+    let isMuted = localStorage.getItem('isMuted') === 'true';
+
+    function playSound(type) {
+        if (isMuted || !audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.01);
+
+        switch (type) {
+            case 'place': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); break;
+            case 'miniwin': oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); break;
+            case 'win': oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(1046.50, audioCtx.currentTime + 0.2); break;
+            case 'lose': oscillator.type = 'square'; oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); oscillator.frequency.linearRampToValueAtTime(220, audioCtx.currentTime + 0.2); break;
+            case 'tie': oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime); break;
+        }
+
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.2);
+        oscillator.stop(audioCtx.currentTime + 0.2);
+    }
+    
+    function toggleMute() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        isMuted = !isMuted;
+        localStorage.setItem('isMuted', isMuted);
+        updateSoundButton();
+    }
+
+    function updateSoundButton() {
+        iconSoundOn.style.display = isMuted ? 'none' : 'block';
+        iconSoundOff.style.display = isMuted ? 'block' : 'none';
+    }
+
+    // --- VARIÁVEIS DE ESTADO DO JOGO ---
+    const PLAYER_X = 'X', PLAYER_O = 'O';
+    const winningConditions = [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6] ];
+    let microBoards, macroBoard, currentPlayer, activeMacroBoard, isGameOver, activeBoardHighlighter, aiWorker;
+    let gameMode;
+    let player1Name = 'Jogador 1', player2Name = 'Jogador 2';
+    let allPlayerScores = JSON.parse(localStorage.getItem('allPlayerScores')) || {};
+
+    // --- FUNÇÕES PRINCIPAIS DO JOGO ---
+
+    function createBoard() {
+        ultimateBoard.innerHTML = '';
+        activeBoardHighlighter = document.createElement('div');
+        activeBoardHighlighter.id = 'active-board-highlighter';
+        ultimateBoard.appendChild(activeBoardHighlighter);
+        
+        for (let i = 0; i < 9; i++) {
+            const macroCell = document.createElement('div');
+            macroCell.classList.add('macro-cell');
+            macroCell.dataset.macroIndex = i;
+            for (let j = 0; j < 9; j++) {
+                const microCell = document.createElement('div');
+                microCell.classList.add('micro-cell');
+                microCell.dataset.microIndex = j;
+                microCell.addEventListener('click', () => handleCellClick(i, j));
+                macroCell.appendChild(microCell);
+            }
+            ultimateBoard.appendChild(macroCell);
+        }
+    }
+    
+    function startGame() {
+        if (aiWorker) aiWorker.terminate();
+        
+        microBoards = Array(9).fill(null).map(() => Array(9).fill(null));
+        macroBoard = Array(9).fill(null);
+        currentPlayer = PLAYER_X;
+        activeMacroBoard = -1;
+        isGameOver = false;
+        ultimateBoard.classList.remove('game-over');
+        
+        document.querySelectorAll('.micro-cell').forEach(cell => {
+            cell.innerHTML = '';
+            cell.classList.remove('player-x', 'player-o');
+        });
+        document.querySelectorAll('.macro-winner-cell').forEach(cell => cell.remove());
+        document.querySelectorAll('.macro-cell').forEach(cell => delete cell.dataset.winner);
+
+        updateScoreboard();
+        updateActiveBoards();
+        updateGameStatus();
+
+        if (gameMode === 'ai' && currentPlayer === PLAYER_O) {
+            setTimeout(botMove, 500);
+        }
+    }
+
+    function handleCellClick(macroIndex, microIndex) {
+        if (!microBoards || isGameOver || (gameMode === 'ai' && currentPlayer !== PLAYER_X)) return;
+        if ((activeMacroBoard !== -1 && activeMacroBoard !== macroIndex) || microBoards[macroIndex][microIndex] || macroBoard[macroIndex]) return;
+
+        makeMove(macroIndex, microIndex, currentPlayer);
+        
+        if (!isGameOver) {
+            const nextPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
+            processMove(microIndex, nextPlayer);
+        }
+    }
+    
+    function makeMove(macroIndex, microIndex, player) {
+        if (microBoards[macroIndex][microIndex]) return;
+        playSound('place');
+        microBoards[macroIndex][microIndex] = player;
+        const cell = ultimateBoard.querySelector(`[data-macro-index='${macroIndex}'] [data-micro-index='${microIndex}']`);
+        const iconX = `<svg class="icon icon-x" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4 L20 20 M20 4 L4 20" /></svg>`;
+        const iconO = `<svg class="icon icon-o" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" fill="none" d="M12,2 A10,10 0 1,0 12,22 A10,10 0 1,0 12,2" /></svg>`;
+        cell.innerHTML = player === PLAYER_X ? iconX : iconO;
+        cell.classList.add(player === PLAYER_X ? 'player-x' : 'player-o');
+        
+        if (checkForMicroWin(macroIndex, player)) {
+            playSound('miniwin');
+            macroBoard[macroIndex] = player;
+            markMacroWin(macroIndex, player);
+            if (checkForMacroWin(player)) {
+                endGame(player);
+                return;
+            }
+        } else if (microBoards[macroIndex].every(c => c !== null)) {
+            macroBoard[macroIndex] = 'T';
+            markMacroWin(macroIndex, 'T');
+        }
+        
+        if (macroBoard.every(c => c !== null) && !isGameOver) {
+            endGame('T');
+        }
+    }
+    
+    function processMove(nextBoardIndex, nextPlayer) {
+        currentPlayer = nextPlayer;
+        activeMacroBoard = macroBoard[nextBoardIndex] !== null ? -1 : nextBoardIndex;
+        updateActiveBoards();
+        updateGameStatus();
+        
+        if (gameMode === 'ai' && currentPlayer === PLAYER_O && !isGameOver) {
+            setTimeout(botMove, 500);
+        }
+    }
+    
+    function botMove() {
+        if (isGameOver) return;
+        const state = { boards: microBoards.map(b => b.slice()), meta: macroBoard.slice(), target: activeMacroBoard, turn: currentPlayer };
+        const blob = new Blob([workerCode], { type: 'application/javascript' });
+        aiWorker = new Worker(URL.createObjectURL(blob));
+        
+        aiWorker.onmessage = (e) => {
+            if (e.data) {
+                const { sb, idx } = e.data;
+                makeMove(sb, idx, PLAYER_O);
+                if (!isGameOver) processMove(idx, PLAYER_X);
+            }
+            aiWorker.terminate();
+            aiWorker = null;
+        };
+        
+        aiWorker.postMessage({ state, botPlayer: PLAYER_O });
+    }
+
+    const checkForMicroWin = (idx, p) => winningConditions.some(c => c.every(i => microBoards[idx][i] === p));
+    const checkForMacroWin = (p) => winningConditions.some(c => c.every(i => macroBoard[i] === p));
+    
+    function markMacroWin(macroIndex, winner) {
+        const macroCell = ultimateBoard.querySelector(`[data-macro-index='${macroIndex}']`);
+        macroCell.dataset.winner = winner;
+        if (winner !== 'T') {
+            const overlay = document.createElement('div');
+            overlay.className = `macro-winner-cell winner-${winner.toLowerCase()}`;
+            overlay.textContent = winner;
+            macroCell.appendChild(overlay);
+        }
+    }
+    
+    function updateActiveBoards() {
+       if (isGameOver || !activeBoardHighlighter) {
+           if(activeBoardHighlighter) activeBoardHighlighter.style.opacity = '0';
+           return;
+       }
+       if (activeMacroBoard === -1) {
+            activeBoardHighlighter.style.opacity = '1';
+            activeBoardHighlighter.style.width = `${ultimateBoard.clientWidth - 12}px`;
+            activeBoardHighlighter.style.height = `${ultimateBoard.clientHeight - 12}px`;
+            activeBoardHighlighter.style.transform = `translate(6px, 6px)`;
+        } else {
+            const activeCell = ultimateBoard.querySelector(`[data-macro-index='${activeMacroBoard}']`);
+            if (activeCell && !activeCell.dataset.winner) {
+                activeBoardHighlighter.style.width = `${activeCell.offsetWidth}px`;
+                activeBoardHighlighter.style.height = `${activeCell.offsetHeight}px`;
+                activeBoardHighlighter.style.transform = `translate(${activeCell.offsetLeft}px, ${activeCell.offsetTop}px)`;
+                activeBoardHighlighter.style.opacity = '1';
+            } else {
+                activeMacroBoard = -1;
+                updateActiveBoards();
+            }
+        }
+    }
+
+    function showModeSelection() {
+        modals.endGame.style.display = 'none';
+        modals.modeSelection.style.display = 'flex';
+    }
+    
+    function endGame(winner) {
+        if (isGameOver) return;
+        isGameOver = true;
+        ultimateBoard.classList.add('game-over');
+        activeBoardHighlighter.style.opacity = '0';
+        updateScores(winner);
+        
+        let content = '';
+        if (winner === PLAYER_X) {
+            playSound('win');
+            content = `
+                <h2 class="winner-x">Parabéns, ${player1Name}!</h2>
+                <p>Você venceu a partida!</p>
+                <img src="https://placehold.co/200x200/eef2ff/4f46e5?text=🏆" alt="Troféu da vitória">
+            `;
+        } else if (winner === PLAYER_O) {
+            const winnerName = gameMode === 'ai' ? 'Jon IA' : player2Name;
+            playSound(gameMode === 'ai' ? 'lose' : 'win');
+            const img = gameMode === 'ai' ? '<img src="https://media.tenor.com/x8v1oNUOmg4AAAAd/rickroll-roll.gif" alt="IA Rindo">' : '<img src="https://placehold.co/200x200/fee2e2/dc2626?text=🏆" alt="Troféu da vitória">';
+            const message = gameMode === 'ai' ? 'A lógica sempre vence. Tente novamente!' : `${player2Name} venceu a partida!`;
+
+            content = `
+                <h2 class="winner-o">Vitória de ${winnerName}!</h2>
+                <p>${message}</p>
+                ${img}
+            `;
+        } else {
+            playSound('tie');
+            content = `
+                <h2 class="winner-t">Empate!</h2>
+                <p>A partida terminou sem um vencedor. Bem jogado!</p>
+                <img src="https://placehold.co/200x200/e2e8f0/475569?text=🤝" alt="Aperto de mãos">
+            `;
+        }
+        endGameContent.innerHTML = content + `<button class="btn btn-primary end-game-button" style="margin-top: 1.5rem;">Voltar ao Menu</button>`;
+        modals.endGame.style.display = 'flex';
+        endGameContent.querySelector('.end-game-button').addEventListener('click', showModeSelection);
+    }
+
+    function updateGameStatus() {
+        if (isGameOver) return;
+        let turnName;
+        if (currentPlayer === PLAYER_X) {
+            turnName = player1Name;
+        } else {
+            turnName = (gameMode === 'ai') ? "Jon IA" : player2Name;
+        }
+        gameStatus.textContent = `É a vez de ${turnName} (${currentPlayer}).`;
+    }
+    
+    // --- FUNÇÕES DE PLACAR E UI ---
+    
+    function updateScoreboard() {
+        const p1Score = allPlayerScores[player1Name] || { wins: 0, losses: 0, ties: 0 };
+        const p2Score = allPlayerScores[player2Name] || { wins: 0, losses: 0, ties: 0 };
+
+        if (gameMode === 'ai') {
+            playerScoreEl.textContent = p1Score.wins;
+            botScoreEl.textContent = p1Score.losses;
+            tieScoreEl.textContent = p1Score.ties;
+        } else {
+            playerScoreEl.textContent = p1Score.wins;
+            botScoreEl.textContent = p2Score.wins;
+            tieScoreEl.textContent = p1Score.ties;
+        }
+    }
+    
+    function updateScores(winner) {
+        if (!allPlayerScores[player1Name]) allPlayerScores[player1Name] = { wins: 0, losses: 0, ties: 0 };
+        if (gameMode === 'player' && !allPlayerScores[player2Name]) {
+            allPlayerScores[player2Name] = { wins: 0, losses: 0, ties: 0 };
+        }
+
+        if (winner === 'T') {
+            allPlayerScores[player1Name].ties++;
+            if (gameMode === 'player') allPlayerScores[player2Name].ties++;
+        } else if (winner === PLAYER_X) {
+            allPlayerScores[player1Name].wins++;
+            if (gameMode === 'player') allPlayerScores[player2Name].losses++;
+        } else if (winner === PLAYER_O) {
+            allPlayerScores[player1Name].losses++;
+            if (gameMode === 'player') allPlayerScores[player2Name].wins++;
+        }
+        localStorage.setItem('allPlayerScores', JSON.stringify(allPlayerScores));
+        updateScoreboard();
+    }
+
+    function showPlayerHistory(name) {
+        const stats = allPlayerScores[name];
+        if (stats) {
+            playerHistoryDiv.textContent = `Histórico: ${stats.wins}V - ${stats.losses}D - ${stats.ties}E`;
+        } else {
+            playerHistoryDiv.textContent = 'Novo jogador! Boa sorte.';
+        }
+    }
+    
+    // --- EVENT LISTENERS E INICIALIZAÇÃO ---
+
+    startGameTriggerBtn.addEventListener('click', () => {
+        modals.p1Name.style.display = 'flex';
+        startGameOverlay.style.display = 'none';
+    });
+    
+    playerNameInput.addEventListener('input', () => {
+        showPlayerHistory(playerNameInput.value.trim());
+    });
+
+    confirmNameBtn.addEventListener('click', () => {
+        player1Name = playerNameInput.value.trim() || 'Jogador 1';
+        welcomePlayerName.textContent = `Olá, ${player1Name}!`;
+        modals.p1Name.style.display = 'none';
+        modals.modeSelection.style.display = 'flex';
+    });
+    
+    vsAiBtn.addEventListener('click', () => {
+        gameMode = 'ai';
+        player2Name = 'Jon IA';
+        playerNameLabel.textContent = `${player1Name} (X)`;
+        opponentNameLabel.textContent = `${player2Name} (O)`;
+        modals.modeSelection.style.display = 'none';
+        startGame();
+    });
+
+    vsPlayerBtn.addEventListener('click', () => {
+        gameMode = 'player';
+        modals.modeSelection.style.display = 'none';
+        modals.p2Name.style.display = 'flex';
+    });
+
+    confirmP2NameBtn.addEventListener('click', () => {
+        player2Name = p2NameInput.value.trim() || "Jogador 2";
+        playerNameLabel.textContent = `${player1Name} (X)`;
+        opponentNameLabel.textContent = `${player2Name} (O)`;
+        modals.p2Name.style.display = 'none';
+        startGame();
+    });
+
+    restartButton.addEventListener('click', () => {
+        startGameOverlay.style.display = 'flex';
+        gameStatus.textContent = 'Clique em Jogar para começar';
+    });
+    helpBtn.addEventListener('click', () => modals.instructions.style.display = 'flex');
+    objectiveBtn.addEventListener('click', () => modals.objective.style.display = 'flex');
+    
+    document.querySelectorAll('.modal-overlay .close-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.target.closest('.modal-overlay').style.display = 'none';
+        });
+    });
+
+    soundBtn.addEventListener('click', toggleMute);
+    window.addEventListener('resize', updateActiveBoards);
+
+    // Inicialização
+    updateSoundButton();
+    createBoard();
+});
+</script>
+</body>
+</html>
+
